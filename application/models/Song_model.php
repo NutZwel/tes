@@ -49,7 +49,7 @@ class Song_model extends CI_Model {
      * @param int $id
      * @return object|null
      */
-    public function get_by_id($id, $checkActive = true)
+    public function get_by_id($id)
     {
         $this->db->select('
             songs.*,
@@ -58,9 +58,7 @@ class Song_model extends CI_Model {
         $this->db->from('songs');
         $this->db->join('genres', 'genres.id = songs.genre_id', 'left');
         $this->db->where('songs.id', $id);
-        if ($checkActive) {
-            $this->db->where('songs.is_active', 1);
-        }
+        $this->db->where('songs.is_active', 1);
 
         return $this->db->get()->row();
     }

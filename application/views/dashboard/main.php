@@ -78,7 +78,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       </button>
 
       <div class="carousel__wrap position-relative"
-           style="padding:0 var(--space-xl,2.5rem);">
+           style="padding:0 var(--space-xl,2.5rem);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;">
+        <style>.carousel__wrap::-webkit-scrollbar{display:none}</style>
         <div class="carousel__track d-flex">
           <?php foreach ($preview_songs as $song):
             $cover = $song->cover_path && cover_available($song->cover_path)
