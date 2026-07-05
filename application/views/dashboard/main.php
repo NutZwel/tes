@@ -56,29 +56,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
     <?php if (!empty($preview_songs)): ?>
     <div class="carousel position-relative" role="region" aria-label="Catalog preview">
-      <!-- Prev -->
-      <button class="carousel__arrow carousel__arrow--prev btn btn-outline-secondary rounded-circle border-0 position-absolute top-50 start-0 translate-middle-y z-3 d-flex align-items-center justify-content-center"
-              aria-label="Previous tracks" type="button"
-              style="width:48px;height:48px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-      </button>
-      <!-- Next -->
-      <button class="carousel__arrow carousel__arrow--next btn btn-outline-secondary rounded-circle border-0 position-absolute top-50 end-0 translate-middle-y z-3 d-flex align-items-center justify-content-center"
-              aria-label="Next tracks" type="button"
-              style="width:48px;height:48px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </button>
-
       <div class="carousel__wrap position-relative"
-           style="padding:0 var(--space-xl,2.5rem);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;">
+           style="padding:0 var(--space-xl,2.5rem);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;">
         <style>.carousel__wrap::-webkit-scrollbar{display:none}</style>
         <div class="carousel__track d-flex">
           <?php foreach ($preview_songs as $song):
