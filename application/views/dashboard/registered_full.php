@@ -40,10 +40,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
     </header>
-    <div class="d-flex overflow-x-auto pb-2" style="scroll-snap-type:x mandatory;scrollbar-width:thin;gap:16px;">
+    <div class="carousel__wrap position-relative" style="padding:0;">
+      <div class="carousel__track d-flex" style="gap:16px;">
       <?php foreach ($recent_listens as $song): $sid = (int) $song->id; ?>
       <?php $cover = $song->cover_path && cover_available($song->cover_path) ? cover_url($song->cover_path) : null; ?>
-      <article class="card flex-shrink-0 overflow-hidden border-secondary" style="flex:0 0 200px;scroll-snap-align:start;background:var(--color-paper-2);">
+      <article class="carousel__card card flex-shrink-0 overflow-hidden border-secondary" style="flex:0 0 200px;background:var(--color-paper-2);">
         <div class="position-relative" style="cursor:pointer;" onclick="playSongById(<?= $sid ?>);"  data-song-id="<?= $sid ?>">
           <div class="position-relative overflow-hidden" style="aspect-ratio:1;background:var(--color-paper-3);">
             <?php if ($cover): ?>
@@ -93,10 +94,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       <h2 class="h2 fw-light mb-0" style="font-family:var(--font-display)">Made For You</h2>
       <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill fw-normal ms-auto">Based on your listening</span>
     </header>
-    <div class="d-flex overflow-x-auto pb-2" style="scroll-snap-type:x mandatory;scrollbar-width:thin;gap:16px;">
+    <div class="carousel__wrap position-relative" style="padding:0;">
+      <div class="carousel__track d-flex" style="gap:16px;">
       <?php foreach ($recommendations as $song): $rsid = (int) $song->id; ?>
       <?php $rcover = $song->cover_path && cover_available($song->cover_path) ? cover_url($song->cover_path) : null; ?>
-      <article class="card flex-shrink-0 overflow-hidden border-secondary" style="flex:0 0 200px;scroll-snap-align:start;background:var(--color-paper-2);">
+      <article class="carousel__card card flex-shrink-0 overflow-hidden border-secondary" style="flex:0 0 200px;background:var(--color-paper-2);">
         <div class="position-relative" style="cursor:pointer;" onclick="playSongById(<?= $rsid ?>);"  data-song-id="<?= $rsid ?>">
           <div class="position-relative overflow-hidden" style="aspect-ratio:1;background:var(--color-paper-3);">
           <?php if ($rcover): ?>
