@@ -653,6 +653,51 @@
     }
   });
 
+  /* ═══ Right-click context menu on all [data-song-id] cards ═══ */
+  function showSongContextMenu(e, songId) {
+    e.preventDefault();
+    var old = document.getElementById('song-context-menu');
+    if (old) old.remove();
+
+    var menu = document.createElement('div');
+    menu.id = 'song-context-menu';
+    menu.style.cssText = 'position:fixed;z-index:10000;background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:10px;padding:6px;box-shadow:0 12px 40px -8px oklch(0% 0 0 / 0.5);min-width:190px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);';
+
+    var items = [
+      { l: 'Add to Queue', h: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>', a: 'queue' },
+      { l: 'Add to Playlist', h: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>', a: 'playlist' },
+      { l: 'Add to Favorites', h: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', a: 'favorite' },
+    ];
+
+    items.forEach(function(item) {
+      var b = document.createElement('button');
+      b.style.cssText = 'display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border:none;border-radius:7px;background:transparent;color:var(--color-ink-2);font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:all .12s;';
+      b.innerHTML = item.h + '<span>' + item.l + '</span>';
+      b.onmouseenter = function() { this.style.background = 'var(--color-paper-3)'; this.style.color = 'var(--color-ink)'; };
+      b.onmouseleave = function() { this.style.background = 'transparent'; this.style.color = 'var(--color-ink-2)'; };
+      b.onclick = function() { menu.remove(); if(item.a==='queue'){var x=new XMLHttpRequest();x.open('GET',BASE+'player/info/'+songId,true);x.onload=function(){if(x.status===200){var d=JSON.parse(x.responseText);window.addToQueue({id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path});}};x.send();}else if(item.a==='playlist'){window.addToPlaylist(songId);}else if(item.a==='favorite'){window.addToFavorites(songId);} };
+      menu.appendChild(b);
+    });
+
+    var x = e.clientX, y = e.clientY;
+    var mw = 200, mh = items.length * 40 + 14;
+    if (x + mw > window.innerWidth) x = window.innerWidth - mw - 10;
+    if (y + mh > window.innerHeight) y = window.innerHeight - mh - 10;
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+    document.body.appendChild(menu);
+
+    function cmClose(ev) { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', cmClose); } }
+    setTimeout(function(){ document.addEventListener('click', cmClose); }, 10);
+  }
+
+  document.addEventListener('contextmenu', function(e) {
+    var card = e.target.closest('[data-song-id]');
+    if (!card || card.closest('.player__menu')) return;
+    var id = parseInt(card.getAttribute('data-song-id'), 10);
+    if (id) showSongContextMenu(e, id);
+  });
+
   /* ═══ Update queue panel with thumbnails ═══ */
   function updateQueueUI(){
     if(!menuQueueList)return;
