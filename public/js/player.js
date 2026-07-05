@@ -72,6 +72,20 @@
     }
   }
 
+  /* ═══ Refresh Continue Listening cards on dashboard ═══ */
+  function refreshContinueListening() {
+    var container = document.querySelector('#continue-listening .d-flex');
+    if (!container) return;
+    var x = new XMLHttpRequest();
+    x.open('GET', BASE + 'dashboard/continue_listening?_t=' + Date.now(), true);
+    x.onload = function() {
+      if (x.status === 200 && x.responseText.trim()) {
+        container.innerHTML = x.responseText;
+      }
+    };
+    x.send();
+  }
+
   function loadSong(song) {
     SONG_ID = song.id;
     markPlayed(song.id);
@@ -83,6 +97,7 @@
     audio.play().then(function() {
       PLAYING = true;
       updatePlayBtn();
+      refreshContinueListening(); // update Continue Listening
     }).catch(function(e) {
       console.warn(e);
       // Retry once (handles mobile autoplay policy)

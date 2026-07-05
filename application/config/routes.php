@@ -17,6 +17,7 @@ $route['downloads'] = 'download';
 $route['downloads/(:any)'] = 'download/$1';
 $route['catalog'] = 'catalog';
 $route['catalog/page/(:num)'] = 'catalog/index/$1';
+$route['dashboard/continue_listening'] = 'dashboard/continue_listening';
 $route['song/(:num)'] = 'song/index/$1';
 $route['player/stream/(:num)'] = 'player/stream/$1';
 $route['player/info/(:num)'] = 'player/info/$1';
