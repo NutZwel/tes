@@ -278,25 +278,6 @@
               </div>
             </div>
 
-            <!-- Language -->
-            <div style="background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:8px;padding:24px;margin-bottom:16px;">
-              <div style="font-size:var(--text-sm);font-weight:500;color:var(--color-ink-2);margin-bottom:4px;">Language</div>
-              <select name="language" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--color-rule);background:var(--color-paper);color:var(--color-ink);font-size:var(--text-sm);cursor:pointer;">
-                <?php
-                $langs = [
-                  'en' => 'English', 'id' => 'Bahasa Indonesia', 'ja' => 'Japanese',
-                  'ko' => 'Korean', 'fr' => 'French', 'es' => 'Spanish',
-                  'de' => 'German', 'ar' => 'Arabic', 'zh' => 'Chinese',
-                  'hi' => 'Hindi', 'pt' => 'Portuguese', 'ru' => 'Russian',
-                ];
-                $currentLang = $prefs->language ?? 'en';
-                foreach ($langs as $code => $label):
-                ?>
-                <option value="<?= $code ?>" <?= $currentLang === $code ? 'selected' : '' ?>><?= $label ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-
           <?= form_close() ?>
         </div>
 
