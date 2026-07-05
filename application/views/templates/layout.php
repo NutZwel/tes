@@ -112,7 +112,7 @@ if ($isPjax):
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <title><?= $title ?? 'Laufey — Music Player & Downloader' ?></title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="<?= base_url('public/css/bootstrap.min.css?v=' . filemtime(FCPATH . 'public/css/bootstrap.min.css')) ?>" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('public/css/tokens.css?v=' . filemtime(FCPATH . 'public/css/tokens.css')) ?>">
   <script>var BASE = '<?= base_url() ?>';</script>
   <style>
@@ -172,7 +172,7 @@ body.theme-bubble::before{background:radial-gradient(circle at 15% 75%,oklch(62%
   <?php $this->load->view('templates/footer', compact('isLoggedIn')); ?>
   <?php $this->load->view('templates/player'); ?>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="<?= base_url('public/js/bootstrap.bundle.min.js?v=' . filemtime(FCPATH . 'public/js/bootstrap.bundle.min.js')) ?>"></script>
   <?php $this->load->view('templates/modal'); ?>
   <script src="<?= base_url('public/js/carousel.js?v=' . filemtime(FCPATH . 'public/js/carousel.js')) ?>"></script>
   <script src="<?= base_url('public/js/pjax.js') ?>"></script>
