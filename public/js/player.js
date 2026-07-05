@@ -596,7 +596,7 @@
     }
   });
 
-  /* ═══ Update queue panel when songs are added ═══ */
+  /* ═══ Update queue panel with thumbnails ═══ */
   function updateQueueUI(){
     if(!menuQueueList)return;
     var items=QUEUE.slice(QUEUE_IDX+1);
@@ -607,14 +607,38 @@
     menuQueueList.innerHTML='';
     items.forEach(function(s,i){
       var li=document.createElement('li');
-      li.className='player__menu-queue-item';
-      li.innerHTML='<span>'+s.title+'</span><button class="player__menu-remove" data-idx="'+i+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
-      li.querySelector('.player__menu-remove').addEventListener('click',function(ev){
+      li.className='player__menu-queue-item' + (i === 0 ? ' player__menu-queue-item--next' : '');
+
+      // Thumbnail
+      var thumb = document.createElement('div');
+      thumb.className = 'player__menu-queue-item-thumb';
+      if (s.cover_path) {
+        thumb.innerHTML = '<img src="' + (s.cover_path.indexOf('http')===0 ? s.cover_path : BASE + s.cover_path) + '" alt="" loading="lazy">';
+      } else {
+        thumb.textContent = (s.title || '?')[0].toUpperCase();
+      }
+
+      // Link
+      var link = document.createElement('div');
+      link.className = 'player__menu-queue-link';
+      link.innerHTML = '<span class="player__menu-queue-title">' + (s.title || 'Unknown') + '</span>' +
+                       '<span class="player__menu-queue-artist">' + (s.artist || '—') + '</span>';
+
+      // Remove button
+      var rmBtn = document.createElement('button');
+      rmBtn.className = 'player__menu-queue-remove';
+      rmBtn.setAttribute('data-idx', i);
+      rmBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      rmBtn.addEventListener('click', function(ev) {
         ev.stopPropagation();
-        var idx=parseInt(this.getAttribute('data-idx'),10);
-        QUEUE.splice(QUEUE_IDX+1+idx,1);
+        var idx = parseInt(this.getAttribute('data-idx'), 10);
+        QUEUE.splice(QUEUE_IDX + 1 + idx, 1);
         updateQueueUI();
       });
+
+      li.appendChild(thumb);
+      li.appendChild(link);
+      li.appendChild(rmBtn);
       menuQueueList.appendChild(li);
     });
   }

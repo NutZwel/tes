@@ -52,6 +52,16 @@ class Player extends CI_Controller {
             return;
         }
 
+        // Cek apakah file_path adalah URL remote
+        if (strpos($song->file_path, 'http') === 0 || strpos($song->file_path, 'https') === 0) {
+            session_write_close();
+            header('Content-Type: audio/mpeg');
+            header('Accept-Ranges: bytes');
+            header('Cache-Control: public, max-age=86400');
+            readfile($song->file_path);
+            exit;
+        }
+
         $filePath = FCPATH . $song->file_path;
 
         if (!file_exists($filePath)) {
