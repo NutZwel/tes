@@ -10,6 +10,10 @@
           <span class="display-4 fw-light text-secondary"><?= mb_strtoupper(mb_substr($song->title, 0, 1)) ?></span>
         </div>
       <?php endif; ?>
+      <div class="continue-listening-indicator" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:5;align-items:center;justify-content:center;flex-direction:column;gap:8px;backdrop-filter:blur(4px);">
+        <div class="bars-box"><span class="bar bar1"></span><span class="bar bar2"></span><span class="bar bar3"></span><span class="bar bar4"></span></div>
+        <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);">Now Playing</span>
+      </div>
       <?php if ($song->duration_seconds): ?>
         <span class="position-absolute bottom-0 end-0 m-1 small fw-medium px-1" style="line-height:1.4;background:rgba(0,0,0,0.65);border-radius:var(--radius-sm,4px);color:#fff;"><?= gmdate('i:s', $song->duration_seconds) ?></span>
       <?php endif; ?>

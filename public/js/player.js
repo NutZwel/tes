@@ -72,6 +72,17 @@
     }
   }
 
+  /* ═══ Now Playing indicator on Continue Listening cards ═══ */
+  function updateNowPlayingIndicator() {
+    var cards = document.querySelectorAll('.continue-listening-card');
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].classList.remove('is-playing');
+      if (parseInt(cards[i].getAttribute('data-song-id'), 10) === SONG_ID && PLAYING) {
+        cards[i].classList.add('is-playing');
+      }
+    }
+  }
+
   /* ═══ Refresh Continue Listening cards on dashboard ═══ */
   function refreshContinueListening() {
     var container = document.querySelector('#continue-listening .d-flex');
@@ -81,10 +92,21 @@
     x.onload = function() {
       if (x.status === 200 && x.responseText.trim()) {
         container.innerHTML = x.responseText;
+        updateNowPlayingIndicator();
       }
     };
     x.send();
   }
+
+  /* Sync now-playing indicator on timeupdate */
+  audio.addEventListener('timeupdate', function() {
+    if (!audio.duration) return;
+    var p = (audio.currentTime / audio.duration) * 100;
+    barFill.style.width = p + '%';
+    timeCurrent.textContent = fmt(audio.currentTime);
+    // Update now playing indicator
+    updateNowPlayingIndicator();
+  });
 
   function loadSong(song) {
     SONG_ID = song.id;
@@ -215,11 +237,6 @@
   prevBtn.addEventListener('click',prevTrack);
   nextBtn.addEventListener('click',nextTrack);
 
-  audio.addEventListener('timeupdate',function(){
-    if(!audio.duration)return;
-    var p=(audio.currentTime/audio.duration)*100;
-    barFill.style.width=p+'%';timeCurrent.textContent=fmt(audio.currentTime);
-  });
   audio.addEventListener('loadedmetadata',function(){timeTotal.textContent=fmt(audio.duration);});
   audio.addEventListener('ended', function() {
     // Auto-play next track when current ends
