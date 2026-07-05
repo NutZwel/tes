@@ -64,13 +64,20 @@ class Dashboard extends CI_Controller {
             }
         }
 
-        // If currently playing song isn't in the list yet, add it from songs table
+        // Move or add currently playing song to the front
         if ($currentSongId > 0) {
-            $found = false;
-            foreach ($recentClean as $s) {
-                if ((int) $s->id === $currentSongId) { $found = true; break; }
+            $moved = false;
+            foreach ($recentClean as $i => $s) {
+                if ((int) $s->id === $currentSongId) {
+                    // Found in list — move to front
+                    $item = array_splice($recentClean, $i, 1);
+                    array_unshift($recentClean, $item[0]);
+                    $moved = true;
+                    break;
+                }
             }
-            if (!$found) {
+            if (!$moved) {
+                // Not in list — fetch from DB and prepend
                 $currentSong = $this->Song_model->get_by_id($currentSongId);
                 if ($currentSong && $currentSong->is_active && $currentSong->file_path) {
                     array_unshift($recentClean, $currentSong);

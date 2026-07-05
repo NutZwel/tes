@@ -96,7 +96,18 @@
       if (x.status === 200 && x.responseText.trim()) {
         track.innerHTML = x.responseText;
         updateNowPlayingIndicator();
-        wrap.scrollLeft = 0;
+        // Wait for layout, then scroll the now-playing card to left
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            var playingCard = track.querySelector('.is-playing');
+            if (playingCard) {
+              // Get card position relative to wrap and scroll to it
+              wrap.scrollLeft = playingCard.offsetLeft - 16;
+            } else {
+              wrap.scrollLeft = 0;
+            }
+          });
+        });
       }
     };
     x.send();
