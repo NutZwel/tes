@@ -167,16 +167,21 @@
   function nextTrack() {
     if (!SONG_ID) return;
     if (LOOP === 2) {
-      // Repeat one
       audio.currentTime = 0;
       audio.play().catch(function(e){console.warn(e);});
       return;
     }
-    // Save current song to history before moving to next
-    if (SONG_ID) {
-      PLAY_HISTORY.push(SONG_ID);
+    // Save current to history
+    PLAY_HISTORY.push(SONG_ID);
+
+    // If there are queued songs waiting, play the next one from queue
+    var upcoming = QUEUE.slice(QUEUE_IDX + 1);
+    if (upcoming.length > 0) {
+      QUEUE_IDX++;
+      loadIdx();
+      return;
     }
-    // Always play a random different song from catalog
+    // No queued songs — pick random from catalog
     shuffleFromCatalog();
   }
   function prevTrack() {
