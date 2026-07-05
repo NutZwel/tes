@@ -28,8 +28,10 @@
 
   var QUEUE = [], QUEUE_IDX = -1, PLAYING = false, SONG_ID = 0, LOOP = 0;
   var PLAYED_IDS = [];
+  var PLAY_HISTORY = [];
   var CLICK_COUNT = 0, CLICK_TIMER = null;
   var audioInitialized = false;
+  var STORAGE_KEY = 'laufey_player_state';
 
   function initAudio() {
     if (audioInitialized) return;
@@ -117,21 +119,21 @@
     player.style.transform = 'translateY(0)';
     audio.src = BASE + 'player/stream/' + song.id;
     audio.load();
-    audio.play().then(function() {
-      PLAYING = true;
-      updatePlayBtn();
-      refreshContinueListening(); // update Continue Listening
-    }).catch(function(e) {
+    PLAYING = true;
+    updatePlayBtn();
+    refreshContinueListening();
+    audio.play().catch(function(e) {
       console.warn(e);
       // Retry once (handles mobile autoplay policy)
       setTimeout(function() {
-        audio.play().then(function() { PLAYING = true; updatePlayBtn(); }).catch(function(e2) { console.warn(e2); });
+        audio.play().catch(function(e2) { console.warn(e2); });
       }, 500);
     });
   }
 
   function playSong(song) {
     CLICK_COUNT = 0;
+    PLAY_HISTORY = [];
     QUEUE = [song];
     QUEUE_IDX = 0;
     loadSong(song);
@@ -159,7 +161,7 @@
     updatePlayBtn();
   }
   function updatePlayBtn() {
-    playIcon.innerHTML=PLAYING&&!audio.paused?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>':'<polygon points="8,5 19,12 8,19"/>';
+    playIcon.innerHTML=PLAYING?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>':'<polygon points="8,5 19,12 8,19"/>';
   }
 
   function nextTrack() {
@@ -170,38 +172,39 @@
       audio.play().catch(function(e){console.warn(e);});
       return;
     }
-    if (LOOP === 1) {
-      // Shuffle
-      if (QUEUE.length > 1) {
-        var n; do { n = Math.floor(Math.random() * QUEUE.length); } while (n === QUEUE_IDX && QUEUE.length > 1);
-        QUEUE_IDX = n;
-        loadIdx();
-      } else {
-        shuffleFromCatalog();
-      }
-      return;
+    // Save current song to history before moving to next
+    if (SONG_ID) {
+      PLAY_HISTORY.push(SONG_ID);
     }
-    // Sequential
-    if (QUEUE.length > 0 && QUEUE_IDX < QUEUE.length - 1) {
-      QUEUE_IDX++;
-      loadIdx();
-    } else if (LOOP === 0 && QUEUE.length === 1) {
-      // Single song, no repeat — just restart if asked, otherwise stop
-      audio.currentTime = 0;
-      audio.play().catch(function(e){console.warn(e);});
-    } else {
-      stopPb();
-    }
+    // Always play a random different song from catalog
+    shuffleFromCatalog();
   }
   function prevTrack() {
-    if (!SONG_ID || audio.currentTime > 3) { audio.currentTime = 0; return; }
-    if (LOOP === 1 && QUEUE.length > 1) {
-      var p; do { p = Math.floor(Math.random() * QUEUE.length); } while (p === QUEUE_IDX && QUEUE.length > 1);
-      QUEUE_IDX = p;
-      loadIdx();
-      return;
+    if (!SONG_ID) return;
+    // Pop last song from history and play it
+    var prevId = PLAY_HISTORY.pop();
+    if (!prevId) return;
+    var song = null;
+    // Look in QUEUE first
+    for (var i = 0; i < QUEUE.length; i++) {
+      if (QUEUE[i].id === prevId) { song = QUEUE[i]; QUEUE_IDX = i; break; }
     }
-    if (QUEUE_IDX > 0) { QUEUE_IDX--; loadIdx(); }
+    if (song) {
+      loadSong(song);
+    } else {
+      // Fetch from server
+      var x = new XMLHttpRequest();
+      x.open('GET', BASE + 'player/info/' + prevId, false);
+      x.send();
+      if (x.status === 200) {
+        var d = JSON.parse(x.responseText);
+        if (d && d.id) {
+          QUEUE = [{id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path}];
+          QUEUE_IDX = 0;
+          loadSong(QUEUE[0]);
+        }
+      }
+    }
   }
   function loadIdx() {
     var song=QUEUE[QUEUE_IDX];if(!song)return;
@@ -212,7 +215,17 @@
       player.classList.add('show');
       player.style.transform = 'translateY(0)';
     }
-    audio.src=BASE+'player/stream/'+song.id;audio.load();audio.play().then(function(){PLAYING=true;updatePlayBtn();}).catch(function(e){console.warn(e);});
+    audio.src=BASE+'player/stream/'+song.id;
+    audio.load();
+    PLAYING = true;
+    updatePlayBtn();
+    audio.play().catch(function(e) {
+      console.warn(e);
+      // Retry once (handles mobile autoplay policy & buffering)
+      setTimeout(function() {
+        audio.play().catch(function(e2) { console.warn(e2); });
+      }, 300);
+    });
   }
   function stopPb() {
     audio.pause();audio.src='';SONG_ID=0;PLAYING=false;
@@ -224,9 +237,10 @@
   function shuffleFromCatalog(){
     if(SHUFFLE_NEXT){var s=SHUFFLE_NEXT;SHUFFLE_NEXT=null;QUEUE=[s];QUEUE_IDX=0;loadIdx();prefetchShuffle();return;}
     var excl=PLAYED_IDS.join(',');
-    var x=new XMLHttpRequest();x.open('GET',BASE+'player/random?exclude='+excl,true);
-    x.onload=function(){if(x.status===200){var d=JSON.parse(x.responseText);if(d&&d.id){QUEUE=[{id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path}];QUEUE_IDX=0;loadIdx();prefetchShuffle();}}else if(x.status===404){PLAYED_IDS=[];shuffleFromCatalog();}};
-    x.send();
+    // Synchronous XHR — keeps user gesture alive so audio.play() isn't blocked
+    var x=new XMLHttpRequest();x.open('GET',BASE+'player/random?exclude='+excl,false);x.send();
+    if(x.status===200){var d=JSON.parse(x.responseText);if(d&&d.id){QUEUE=[{id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path}];QUEUE_IDX=0;loadIdx();prefetchShuffle();return;}}
+    if(x.status===404){PLAYED_IDS=[];shuffleFromCatalog();}
   }
   function prefetchShuffle(){
     var excl=PLAYED_IDS.join(',');
@@ -241,14 +255,7 @@
   audio.addEventListener('loadedmetadata',function(){timeTotal.textContent=fmt(audio.duration);});
   audio.addEventListener('ended', function() {
     // Auto-play next track when current ends
-    if (LOOP === 2 || (QUEUE.length > 0 && QUEUE_IDX < QUEUE.length - 1)) {
-      nextTrack();
-    } else if (LOOP === 1) {
-      nextTrack();
-    } else if (QUEUE.length === 1 && QUEUE_IDX === 0) {
-      // Single song — just stop
-      stopPb();
-    }
+    nextTrack();
   });
 
   var bar=document.getElementById('player-bar');
@@ -683,7 +690,121 @@
   };
   /* Override playSong to reset queue UI */
   var origPlaySong=playSong;
-  playSong=function(song){origPlaySong(song);setTimeout(updateQueueUI,100);};
+  playSong=function(song){
+    // Clear saved state — fresh play should not mix with restored state
+    sessionStorage.removeItem(STORAGE_KEY);
+    origPlaySong(song);
+    setTimeout(updateQueueUI,100);
+  };
   window.playSong=playSong;
+
+  /* ════════════════════════════════════════════
+     ── sessionStorage Persistence (survive full reloads) ──
+     ════════════════════════════════════════════ */
+
+  /**
+   * Save current player state before page unload.
+   */
+  function savePlayerState() {
+    if (!SONG_ID) return;
+    try {
+      var state = {
+        songId: SONG_ID,
+        currentTime: audio.currentTime || 0,
+        volume: audio.volume,
+        loop: LOOP,
+        queue: QUEUE,
+        queueIdx: QUEUE_IDX,
+        playedIds: PLAYED_IDS,
+        title: titleEl.textContent,
+        artist: artistEl.textContent,
+        coverPath: artImg.style.display !== 'none' && artImg.src ? artImg.src.replace(BASE, '') : null,
+        filePath: null,
+      };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) { /* ignore quota errors */ }
+  }
+
+  window.addEventListener('beforeunload', savePlayerState);
+
+  /**
+   * Restore player state after a full page reload.
+   */
+  function restorePlayerState() {
+    var raw;
+    try { raw = sessionStorage.getItem(STORAGE_KEY); } catch (e) { return; }
+    if (!raw) return;
+
+    var state;
+    try { state = JSON.parse(raw); } catch (e) { return; }
+    if (!state || !state.songId) return;
+
+    // Clear storage so subsequent PJAX navigations don't re-restore
+    sessionStorage.removeItem(STORAGE_KEY);
+
+    // Fetch fresh song info to verify the song still exists
+    var x = new XMLHttpRequest();
+    x.open('GET', BASE + 'player/info/' + state.songId, true);
+    x.onload = function () {
+      if (x.status !== 200) {
+        // Song was deleted — bail out
+        return;
+      }
+      var d;
+      try { d = JSON.parse(x.responseText); } catch (e) { return; }
+      if (!d || !d.id) return;
+
+      // Restore internal state
+      SONG_ID = d.id;
+      LOOP = state.loop || 0;
+      QUEUE = state.queue || [];
+      QUEUE_IDX = state.queueIdx >= 0 ? state.queueIdx : 0;
+      PLAYED_IDS = state.playedIds || [];
+
+      // Restore UI
+      markPlayed(d.id);
+      setSongInfo(d);
+      player.classList.add('show');
+      player.style.transform = 'translateY(0)';
+      updatePlayBtn();
+      updateLoopBtn();
+      updateQueueUI();
+
+      // Restore volume before loading audio
+      if (typeof state.volume === 'number' && state.volume >= 0 && state.volume <= 1) {
+        audio.volume = state.volume;
+        volRange.value = state.volume * 100;
+        updateVolIcon();
+      }
+
+      // Load audio and seek to saved position
+      var savedTime = state.currentTime || 0;
+      var seekHandler = function () {
+        audio.removeEventListener('loadedmetadata', seekHandler);
+        if (savedTime > 0 && audio.duration && savedTime < audio.duration) {
+          audio.currentTime = savedTime;
+        }
+      };
+      audio.addEventListener('loadedmetadata', seekHandler);
+      audio.src = BASE + 'player/stream/' + d.id;
+      audio.load();
+
+      // Indicate to user that playback is paused and ready to resume
+      timeCurrent.textContent = fmt(savedTime);
+      if (audio.duration) {
+        timeTotal.textContent = fmt(audio.duration);
+        barFill.style.width = ((savedTime / audio.duration) * 100) + '%';
+      }
+    };
+    x.onerror = function () { /* network error — silently give up */ };
+    x.send();
+  }
+
+  // Restore on load (runs after full page reloads)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', restorePlayerState);
+  } else {
+    restorePlayerState();
+  }
 
 })();
