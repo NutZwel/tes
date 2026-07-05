@@ -35,10 +35,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   <div class="container">
     <header class="d-flex align-items-baseline gap-3 mb-4">
       <h2 class="h2 fw-light mb-0" style="font-family:var(--font-display)">Continue Listening</h2>
-      <a href="<?= base_url('profile/listening') ?>" class="btn btn-outline-secondary btn-sm rounded-pill ms-auto d-inline-flex align-items-center gap-1 flex-shrink-0">
-        View all
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </a>
+      <span class="ms-auto"></span>
     </header>
     <div class="carousel__wrap position-relative" style="padding:0;">
       <div class="carousel__track d-flex" style="gap:16px;">
