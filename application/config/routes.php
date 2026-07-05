@@ -16,6 +16,7 @@ $route['favorites/(:any)'] = 'favorites/$1';
 $route['downloads'] = 'download/page';
 $route['downloads/page'] = 'download/page';
 $route['downloads/(:num)'] = 'download/index/$1';
+$route['download/(:num)'] = 'download/index/$1';
 $route['catalog'] = 'catalog';
 $route['catalog/page/(:num)'] = 'catalog/index/$1';
 $route['dashboard/continue_listening'] = 'dashboard/continue_listening';
