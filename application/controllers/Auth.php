@@ -108,6 +108,7 @@ class Auth extends CI_Controller {
             'username'     => $user->username,
             'display_name' => $user->display_name ?: $user->username,
             'role'         => $user->role ?? 'user',
+            'avatar_path'  => $user->avatar_path ?? '',
         ]);
         $this->session->sess_regenerate(false);
     }

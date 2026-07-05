@@ -671,6 +671,7 @@
       { l: 'Add to Queue', h: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>', a: 'queue' },
       { l: 'Add to Playlist', h: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>', a: 'playlist' },
       { l: 'Add to Favorites', h: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', a: 'favorite' },
+      { l: 'Download', h: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>', a: 'download' },
     ];
 
     items.forEach(function(item) {
@@ -679,7 +680,7 @@
       b.innerHTML = item.h + '<span>' + item.l + '</span>';
       b.onmouseenter = function() { this.style.background = 'var(--color-paper-3)'; this.style.color = 'var(--color-ink)'; };
       b.onmouseleave = function() { this.style.background = 'transparent'; this.style.color = 'var(--color-ink-2)'; };
-      b.onclick = function() { menu.remove(); if(item.a==='queue'){var x=new XMLHttpRequest();x.open('GET',BASE+'player/info/'+songId,true);x.onload=function(){if(x.status===200){var d=JSON.parse(x.responseText);window.addToQueue({id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path});}};x.send();}else if(item.a==='playlist'){window.addToPlaylist(songId);}else if(item.a==='favorite'){window.addToFavorites(songId);} };
+      b.onclick = function() { menu.remove(); if(item.a==='queue'){var x=new XMLHttpRequest();x.open('GET',BASE+'player/info/'+songId,true);x.onload=function(){if(x.status===200){var d=JSON.parse(x.responseText);window.addToQueue({id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path});}};x.send();}else if(item.a==='playlist'){window.addToPlaylist(songId);}else if(item.a==='favorite'){window.addToFavorites(songId);}else if(item.a==='download'){window.location.href=BASE+'download/'+songId;} };
       menu.appendChild(b);
     });
 

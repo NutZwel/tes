@@ -4,6 +4,7 @@ $activeSegment = ltrim((string) ($this->uri->segment(1) ?: 'dashboard'), '/');
 $navSection = match (true) {
   $activeSegment === 'catalog' || $activeSegment === 'catalog/index' => 'catalog',
   $activeSegment === 'playlist' || $activeSegment === 'playlists' => 'playlist',
+  $activeSegment === 'downloads' || $activeSegment === 'downloads/page' => 'downloads',
   $activeSegment === 'user' || $activeSegment === 'profile'      => 'user',
   $activeSegment === 'admin'                    => 'admin',
   default                                       => 'dashboard',
