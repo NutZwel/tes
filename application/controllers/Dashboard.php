@@ -43,4 +43,26 @@ class Dashboard extends CI_Controller {
         $data['title'] = 'Laufey — Music Player & Downloader';
         $this->load->view('templates/layout', $data);
     }
+
+    /**
+     * Return Continue Listening cards HTML (for JS auto-refresh).
+     */
+    public function continue_listening()
+    {
+        $userId = (int) $this->session->userdata('user_id');
+        if ($userId <= 0) { return; }
+
+        $this->load->model('Listen_history_model');
+        $recentRaw = $this->Listen_history_model->get_recent($userId, 20);
+        $recentClean = [];
+        foreach ($recentRaw as $s) {
+            if ($s->id && $s->is_active && $s->file_path && count($recentClean) < 6) {
+                $recentClean[] = $s;
+            }
+        }
+        if (empty($recentClean)) { return; }
+
+        $data['recent_listens'] = $recentClean;
+        $this->load->view('dashboard/_continue_listening', $data);
+    }
 }
