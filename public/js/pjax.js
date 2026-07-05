@@ -56,7 +56,7 @@
     var rel = href.replace(BASE, '').split('?')[0].replace(/\/$/, '');
     var page = rel.split('/')[0] || 'dashboard';
     // Map alias URLs to nav section keys
-    var navMap = { 'dashboard': 'dashboard', 'catalog': 'catalog', 'playlist': 'playlist', 'playlists': 'playlist', 'user': 'user', 'profile': 'user', 'admin': 'admin' };
+    var navMap = { 'dashboard': 'dashboard', 'catalog': 'catalog', 'playlist': 'playlist', 'playlists': 'playlist', 'downloads': 'download', 'download': 'download', 'user': 'user', 'profile': 'user', 'admin': 'admin' };
     var pageSection = navMap[page] || 'dashboard';
     document.querySelectorAll('[data-pjax-nav]').forEach(function(link) {
       var lh = link.getAttribute('href') || '';
