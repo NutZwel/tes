@@ -30,7 +30,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <h1>404</h1>
         <h2>Page Not Found</h2>
         <p>The page you requested was not found.</p>
-        <p><a href="<?= base_url() ?>">Back to Home</a></p>
+        <p><a href="<?= '/' ?>">Back to Home</a></p>
     </div>
 </body>
 </html>
