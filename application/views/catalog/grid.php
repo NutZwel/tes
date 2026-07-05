@@ -51,7 +51,7 @@
       <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
         <?php foreach ($songs as $song): ?>
         <div class="col">
-          <article class="card bg-body-tertiary border-secondary-subtle h-100 song-card">
+          <article class="card bg-body-tertiary border-secondary-subtle h-100 song-card" data-song-id="<?= $song->id ?>">
             <div class="position-relative overflow-hidden" style="aspect-ratio: 1;" data-play-now="<?= $song->id ?>">
               <?php if ($song->cover_path && cover_available($song->cover_path)): ?>
                 <img src="<?= cover_url($song->cover_path) ?>"
