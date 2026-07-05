@@ -52,6 +52,9 @@ class Dashboard extends CI_Controller {
         $userId = (int) $this->session->userdata('user_id');
         if ($userId <= 0) { return; }
 
+        // Accept currently playing song ID from JS
+        $currentSongId = (int) $this->input->get('current_id', true);
+
         $this->load->model('Listen_history_model');
         $recentRaw = $this->Listen_history_model->get_recent($userId, 20);
         $recentClean = [];
@@ -60,7 +63,19 @@ class Dashboard extends CI_Controller {
                 $recentClean[] = $s;
             }
         }
+
         if (empty($recentClean)) { return; }
+
+        // Move currently playing song to the front of the list
+        if ($currentSongId > 0) {
+            foreach ($recentClean as $i => $s) {
+                if ((int) $s->id === $currentSongId && $i > 0) {
+                    $moved = array_splice($recentClean, $i, 1);
+                    array_unshift($recentClean, $moved[0]);
+                    break;
+                }
+            }
+        }
 
         $data['recent_listens'] = $recentClean;
         $this->load->view('dashboard/_continue_listening', $data);

@@ -91,12 +91,11 @@
     var track = wrap ? wrap.querySelector('.carousel__track') : null;
     if (!track) return;
     var x = new XMLHttpRequest();
-    x.open('GET', BASE + 'dashboard/continue_listening?_t=' + Date.now(), true);
+    x.open('GET', BASE + 'dashboard/continue_listening?_t=' + Date.now() + '&current_id=' + SONG_ID, true);
     x.onload = function() {
       if (x.status === 200 && x.responseText.trim()) {
         track.innerHTML = x.responseText;
         updateNowPlayingIndicator();
-        // Scroll to the beginning so the now-playing card is visible first
         wrap.scrollLeft = 0;
       }
     };
