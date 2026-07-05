@@ -85,13 +85,14 @@
 
   /* ═══ Refresh Continue Listening cards on dashboard ═══ */
   function refreshContinueListening() {
-    var container = document.querySelector('#continue-listening .d-flex');
-    if (!container) return;
+    var track = document.querySelector('#continue-listening .carousel__track');
+    if (!track) return;
     var x = new XMLHttpRequest();
     x.open('GET', BASE + 'dashboard/continue_listening?_t=' + Date.now(), true);
     x.onload = function() {
       if (x.status === 200 && x.responseText.trim()) {
-        container.innerHTML = x.responseText;
+        // Replace content of carousel__track with fresh partial
+        track.innerHTML = x.responseText;
         updateNowPlayingIndicator();
       }
     };

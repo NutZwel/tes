@@ -320,10 +320,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
       <h2 class="h2 fw-light mb-0" style="font-family:var(--font-display)">Trending Now</h2>
       <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill fw-normal ms-auto">Popular this week</span>
     </header>
-    <div class="d-flex overflow-x-auto pb-2" style="scroll-snap-type:x mandatory;scrollbar-width:thin;gap:16px;">
+    <div class="carousel__wrap position-relative" style="padding:0;">
+      <div class="carousel__track d-flex" style="gap:16px;">
       <?php foreach ($trending as $song): $tsid = (int) $song->id; ?>
       <?php $tcover = $song->cover_path && cover_available($song->cover_path) ? cover_url($song->cover_path) : null; ?>
-      <article class="card flex-shrink-0 overflow-hidden border-secondary" style="flex:0 0 200px;scroll-snap-align:start;background:var(--color-paper-2);">
+      <article class="carousel__card card flex-shrink-0 overflow-hidden border-secondary" style="flex:0 0 200px;background:var(--color-paper-2);">
         <div class="position-relative" style="cursor:pointer;" onclick="playSongById(<?= $tsid ?>);"  data-song-id="<?= $tsid ?>">
           <div class="position-relative overflow-hidden" style="aspect-ratio:1;background:var(--color-paper-3);">
           <?php if ($tcover): ?>

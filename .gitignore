@@ -1,6 +1,3 @@
-# Audio & cover files — NEVER committed
-protected_uploads/
-
 # Environment
 .env
 .env.local
@@ -28,3 +25,8 @@ coverage/
 # SQLite (N/A but safe to ignore)
 *.sqlite
 prisma/dev.db
+
+# Claude AI — konfigurasi dan artefak lokal
+.claude/
+_agent/
+agent_render_v*.png
