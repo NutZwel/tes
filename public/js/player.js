@@ -680,7 +680,7 @@
       b.innerHTML = item.h + '<span>' + item.l + '</span>';
       b.onmouseenter = function() { this.style.background = 'var(--color-paper-3)'; this.style.color = 'var(--color-ink)'; };
       b.onmouseleave = function() { this.style.background = 'transparent'; this.style.color = 'var(--color-ink-2)'; };
-      b.onclick = function() { menu.remove(); if(item.a==='queue'){var x=new XMLHttpRequest();x.open('GET',BASE+'player/info/'+songId,true);x.onload=function(){if(x.status===200){var d=JSON.parse(x.responseText);window.addToQueue({id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path});}};x.send();}else if(item.a==='playlist'){window.addToPlaylist(songId);}else if(item.a==='favorite'){window.addToFavorites(songId);}else if(item.a==='download'){window.location.href=BASE+'download/'+songId;} };
+      b.onclick = function() { menu.remove(); if(item.a==='queue'){var x=new XMLHttpRequest();x.open('GET',BASE+'player/info/'+songId,true);x.onload=function(){if(x.status===200){var d=JSON.parse(x.responseText);window.addToQueue({id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path});}};x.send();}else if(item.a==='playlist'){window.addToPlaylist(songId);}else if(item.a==='favorite'){window.addToFavorites(songId);}else if(item.a==='download'){window.location.href=BASE+'downloads/'+songId;} };
       menu.appendChild(b);
     });
 
