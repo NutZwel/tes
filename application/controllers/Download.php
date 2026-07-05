@@ -66,4 +66,35 @@ class Download extends CI_Controller {
         $this->load->helper('download');
         force_download($filePath, null);
     }
+
+    /**
+     * Download page — show songs with download links.
+     */
+    public function page()
+    {
+        $this->load->model('Song_model');
+        $page = max(1, (int) $this->input->get('page'));
+        $search = $this->input->get('q', TRUE);
+        $perPage = 24;
+
+        if (!empty($search)) {
+            $songs = $this->Song_model->search($search, $page, $perPage);
+            $total = $this->Song_model->count_search($search);
+        } else {
+            $songs = $this->Song_model->get_paginated($page, $perPage);
+            $total = $this->Song_model->count_all();
+        }
+
+        $data = [
+            'songs'        => $songs,
+            'total_songs'  => $total,
+            'current_page' => $page,
+            'total_pages'  => max(1, ceil($total / $perPage)),
+            'search_query' => $search,
+            'title'        => 'Download — Laufey',
+            'main_view'    => 'download/page',
+        ];
+
+        $this->load->view('templates/layout', $data);
+    }
 }
