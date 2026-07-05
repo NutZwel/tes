@@ -16,4 +16,6 @@ INSERT INTO `songs` (`id`, `title`, `artist`, `genre_id`, `file_path`, `cover_pa
 (6, 'Lover Girl', 'Laufey', 2, 'protected_uploads/audio/Laufey - Lover Girl_128k.mp3', 'protected_uploads/covers/lover_girl.jpg', 180),
 (7, 'XXL', 'LANY', 6, 'protected_uploads/audio/audio_file_1783227458_680.mp3', 'protected_uploads/covers/cover_file_1783227458_782.jpg', 206),
 (8, 'Fuchsias', 'Kasper', 6, 'protected_uploads/audio/audio_file_1783228287_226.mp3', 'protected_uploads/covers/cover_file_1783228287_251.jpg', 165),
-(9, 'OBH Combi Sachet', 'Tenxi, Naykila, Jemsii', NULL, 'protected_uploads/audio/audio_file_1783230185_450.mp3', 'protected_uploads/covers/cover_file_1783230185_944.jpg', NULL);
+(9, 'OBH Combi Sachet', 'Tenxi, Naykila, Jemsii', NULL, 'protected_uploads/audio/audio_file_1783230185_450.mp3', 'protected_uploads/covers/cover_file_1783230185_944.jpg', NULL),
+(10, 'dna', 'LANY', 6, 'protected_uploads/audio/audio_file_1783232796_235.mp3', 'protected_uploads/covers/cover_file_1783232796_151.jpg', NULL),
+(11, 'Take a Chance With Me', 'Nikki', 6, 'protected_uploads/audio/audio_file_1783233567_214.mp3', 'protected_uploads/covers/cover_file_1783233567_818.png', NULL);
