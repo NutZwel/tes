@@ -1,6 +1,5 @@
 /**
- * Laufey — Drag-to-Scroll Carousel
- * Native mouse/touch drag with momentum & edge damping
+ * Laufey — Drag-to-Scroll Carousel with arrow navigation
  */
 (function () {
   'use strict';
@@ -14,12 +13,35 @@
     var prevX = 0, prevTime = 0;
     var isDragging = false, dragDist = 0;
 
+    // Find arrow buttons (sibling or parent's children)
+    var carousel = wrap.closest('.carousel');
+    var prevBtn = carousel ? carousel.querySelector('.carousel__arrow--prev') : null;
+    var nextBtn = carousel ? carousel.querySelector('.carousel__arrow--next') : null;
+
     function getMaxScroll() {
       return wrap.scrollWidth - wrap.clientWidth;
     }
 
-    function clamp(v, min, max) {
-      return Math.min(max, Math.max(min, v));
+
+    if (prevBtn) {
+      prevBtn.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+      prevBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (isDown) { isDown = false; wrap.style.cursor = ''; }
+        var card = track.querySelector('.carousel__card');
+        var cardWidth = card ? card.offsetWidth + 16 : 260;
+        wrap.scrollLeft -= cardWidth;
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+      nextBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (isDown) { isDown = false; wrap.style.cursor = ''; }
+        var card = track.querySelector('.carousel__card');
+        var cardWidth = card ? card.offsetWidth + 16 : 260;
+        wrap.scrollLeft += cardWidth;
+      });
     }
 
     function onStart(clientX) {
@@ -43,7 +65,6 @@
       if (dragDist > 8) isDragging = true;
       wrap.scrollLeft = scrollLeft - dx;
 
-      // Track velocity (sample every 40ms)
       var now = Date.now();
       if (now - prevTime > 40) {
         vel = prevX - clientX;
@@ -64,12 +85,10 @@
         var maxScroll = getMaxScroll();
 
         function step() {
-          // Clamp: bounce damping — when near edge, kill vel faster
           var atLeft = wrap.scrollLeft <= 0;
           var atRight = wrap.scrollLeft >= maxScroll;
 
           if (atLeft || atRight) {
-            // Gentle "bounce" — not full stop, but heavy damping
             vel *= 0.5;
             if (atLeft) wrap.scrollLeft = Math.max(0, wrap.scrollLeft + Math.abs(vel) * 0.3);
             if (atRight) wrap.scrollLeft = Math.min(maxScroll, wrap.scrollLeft - Math.abs(vel) * 0.3);
@@ -78,7 +97,6 @@
           vel *= friction;
           wrap.scrollLeft -= vel;
 
-          // Clamp to bounds
           if (wrap.scrollLeft < 0) { wrap.scrollLeft = 0; vel = 0; }
           if (wrap.scrollLeft > maxScroll) { wrap.scrollLeft = maxScroll; vel = 0; }
 
@@ -91,7 +109,6 @@
         animationId = requestAnimationFrame(step);
       }
 
-      // Block immediate click after drag (gentler — just for the next frame)
       if (isDragging) {
         wrap.classList.add('is-dragging');
         requestAnimationFrame(function () {
@@ -102,13 +119,17 @@
       }
     }
 
-    // Mouse events
-    track.addEventListener('mousedown', function (e) {
+    // Mouse drag
+    function handleDown(e) {
       if (e.button !== 0) return;
+      if (e.target.closest('.carousel__arrow')) return;
       if (e.target.closest('.dropdown') || e.target.closest('button')) return;
-      // Don't preventDefault — let click events pass through for non-drag
+      // Safety: reset if stuck from previous interaction
+      if (isDown) { isDown = false; }
       onStart(e.clientX);
-    });
+    }
+    // Listen on wrap (not just track) to catch drags starting from anywhere in carousel
+    wrap.addEventListener('mousedown', handleDown);
     document.addEventListener('mousemove', function (e) {
       if (!isDown) return;
       e.preventDefault();
@@ -135,7 +156,6 @@
     }, { passive: true });
   }
 
-  // Initialize all carousels on page load
   function initAll() {
     document.querySelectorAll('.carousel__wrap').forEach(initCarousel);
   }
@@ -146,11 +166,9 @@
     initAll();
   }
 
-  // Re-init on PJAX navigation
   document.addEventListener('pjax:complete', function () {
     setTimeout(initAll, 50);
   });
 
-  // Expose for manual re-init
   window.initCarousels = initAll;
 })();
