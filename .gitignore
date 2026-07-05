@@ -1,0 +1,30 @@
+# Audio & cover files — NEVER committed
+protected_uploads/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+application/logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/settings.json
+
+# Log files
+*.log
+*.local
+
+# Coverage (N/A but safe to ignore)
+coverage/
+.nyc_output/
+
+# SQLite (N/A but safe to ignore)
+*.sqlite
+prisma/dev.db
