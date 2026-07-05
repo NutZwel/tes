@@ -26,7 +26,8 @@ coverage/
 *.sqlite
 prisma/dev.db
 
-# Claude AI — konfigurasi dan artefak lokal
+# Claude AI
 .claude/
+.hallmark/
 _agent/
 agent_render_v*.png
