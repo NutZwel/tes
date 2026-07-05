@@ -378,6 +378,10 @@
         window.addToPlaylist(SONG_ID);
       } else if (action === 'favorite' && SONG_ID) {
         window.addToFavorites(SONG_ID);
+      } else if (action === 'reset-queue') {
+        QUEUE = []; QUEUE_IDX = -1;
+        updateQueueUI();
+        toast('Queue cleared');
       }
     });
   }
