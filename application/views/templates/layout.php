@@ -176,6 +176,7 @@ body.theme-bubble::before{background:radial-gradient(circle at 15% 75%,oklch(62%
   <?php $this->load->view('templates/modal'); ?>
   <script src="<?= base_url('public/js/carousel.js?v=' . filemtime(FCPATH . 'public/js/carousel.js')) ?>"></script>
   <script src="<?= base_url('public/js/pjax.js') ?>"></script>
+  <script src="<?= base_url('public/js/admin-upload.js?v=' . filemtime(FCPATH . 'public/js/admin-upload.js')) ?>"></script>
   <script src="<?= base_url('public/js/player.js?v=' . filemtime(FCPATH . 'public/js/player.js')) ?>"></script>
 </body>
 </html>
