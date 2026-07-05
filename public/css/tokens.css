@@ -465,8 +465,7 @@ body {
   position: relative;
 }
 .carousel__wrap {
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   position: relative;
   padding: 0 var(--space-xl);
   scrollbar-width: none;
@@ -476,10 +475,33 @@ body {
 /* Prevent click-through during drag */
 .carousel__wrap.is-dragging * { pointer-events: none !important; }
 
+/* Carousel card 3D hover / center effect */
+.carousel__card {
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+  will-change: transform;
+  cursor: pointer;
+}
+.carousel__card:hover {
+  transform: scale(1.06);
+  box-shadow: 0 12px 40px -8px oklch(0% 0 0 / 0.5);
+  z-index: 10;
+  position: relative;
+}
+.carousel__card:hover .carousel__img {
+  transform: scale(1.08);
+}
+.carousel__art {
+  overflow: hidden;
+  border-radius: 8px;
+}
+.carousel__img {
+  transition: transform 0.3s var(--ease-out);
+}
+
 .carousel__track {
   display: flex; gap: var(--space-lg);
+  transition: transform var(--dur-slow) var(--ease-out);
   will-change: transform;
-  padding: 12px 0 20px;
 }
 
 /* ── Card ── */
@@ -498,21 +520,6 @@ body {
   transform: translateY(-3px);
   box-shadow: 0 8px 28px -12px oklch(0% 0 0 / 0.5);
   border-color: var(--color-paper-3);
-}
-.carousel__card.is-active {
-  transform: scale(1.08) translateY(-6px);
-  box-shadow: 0 16px 48px -12px oklch(0% 0 0 / 0.6),
-              inset 0 0 0 1px var(--color-accent);
-  border-color: var(--color-accent);
-  z-index: 3;
-  position: relative;
-}
-.carousel__card.is-active .carousel__img {
-  transform: scale(1.08);
-}
-.carousel__card.is-active .carousel__art::after {
-  opacity: 0.7;
-  filter: blur(32px) saturate(1.8);
 }
 .carousel__card:focus-within {
   border-color: var(--color-focus);

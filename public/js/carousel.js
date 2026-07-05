@@ -1,27 +1,8 @@
 /**
- * Laufey — Drag-to-Scroll Carousel with center card detection
+ * Laufey — Drag-to-Scroll Carousel with arrow navigation
  */
 (function () {
   'use strict';
-
-  /* ═══ Highlight the card closest to center ═══ */
-  function updateActiveCard(wrap) {
-    var cards = wrap.querySelectorAll('.carousel__card');
-    if (!cards.length) return;
-    var wrapCenter = wrap.offsetWidth / 2;
-    var best = -1, bestDist = Infinity;
-    for (var i = 0; i < cards.length; i++) {
-      var c = cards[i];
-      var rect = c.getBoundingClientRect();
-      var wrapRect = wrap.getBoundingClientRect();
-      var cardCenter = rect.left - wrapRect.left + rect.width / 2;
-      var dist = Math.abs(cardCenter - wrapCenter);
-      if (dist < bestDist) { bestDist = dist; best = i; }
-    }
-    for (var j = 0; j < cards.length; j++) {
-      cards[j].classList.toggle('is-active', j === best);
-    }
-  }
 
   function initCarousel(wrap) {
     var track = wrap.querySelector('.carousel__track');
@@ -31,9 +12,8 @@
     var isDown = false, startX = 0, scrollLeft = 0, vel = 0, animationId = null;
     var prevX = 0, prevTime = 0;
     var isDragging = false, dragDist = 0;
-    var activeFrame = null;
 
-    // Find arrow buttons
+    // Find arrow buttons (sibling or parent's children)
     var carousel = wrap.closest('.carousel');
     var prevBtn = carousel ? carousel.querySelector('.carousel__arrow--prev') : null;
     var nextBtn = carousel ? carousel.querySelector('.carousel__arrow--next') : null;
@@ -42,36 +22,7 @@
       return wrap.scrollWidth - wrap.clientWidth;
     }
 
-    /* ═══ Snap to nearest card on scroll end ═══ */
-    function snapToCard() {
-      var cards = track.querySelectorAll('.carousel__card');
-      if (!cards.length) return;
-      var wrapCenter = wrap.offsetWidth / 2;
-      var best = -1, bestDist = Infinity;
-      for (var i = 0; i < cards.length; i++) {
-        var rect = cards[i].getBoundingClientRect();
-        var wrapRect = wrap.getBoundingClientRect();
-        var cardCenter = rect.left - wrapRect.left + rect.width / 2;
-        var dist = Math.abs(cardCenter - wrapCenter);
-        if (dist < bestDist) { bestDist = dist; best = i; }
-      }
-      if (best >= 0) {
-        var card = cards[best];
-        var targetScroll = wrap.scrollLeft + (card.getBoundingClientRect().left - wrap.getBoundingClientRect().left) - (wrap.offsetWidth - card.offsetWidth) / 2;
-        wrap.scrollLeft = targetScroll;
-      }
-    }
 
-    // Schedule active card update (throttled)
-    function scheduleActiveUpdate() {
-      if (activeFrame) cancelAnimationFrame(activeFrame);
-      activeFrame = requestAnimationFrame(function () {
-        updateActiveCard(wrap);
-        activeFrame = null;
-      });
-    }
-
-    // Arrow buttons
     if (prevBtn) {
       prevBtn.addEventListener('mousedown', function (e) { e.stopPropagation(); });
       prevBtn.addEventListener('click', function (e) {
@@ -80,7 +31,6 @@
         var card = track.querySelector('.carousel__card');
         var cardWidth = card ? card.offsetWidth + 16 : 260;
         wrap.scrollLeft -= cardWidth;
-        scheduleActiveUpdate();
       });
     }
     if (nextBtn) {
@@ -91,7 +41,6 @@
         var card = track.querySelector('.carousel__card');
         var cardWidth = card ? card.offsetWidth + 16 : 260;
         wrap.scrollLeft += cardWidth;
-        scheduleActiveUpdate();
       });
     }
 
@@ -115,7 +64,6 @@
       dragDist = Math.abs(dx);
       if (dragDist > 8) isDragging = true;
       wrap.scrollLeft = scrollLeft - dx;
-      scheduleActiveUpdate();
 
       var now = Date.now();
       if (now - prevTime > 40) {
@@ -152,20 +100,13 @@
           if (wrap.scrollLeft < 0) { wrap.scrollLeft = 0; vel = 0; }
           if (wrap.scrollLeft > maxScroll) { wrap.scrollLeft = maxScroll; vel = 0; }
 
-          scheduleActiveUpdate();
-
           if (Math.abs(vel) > stopThreshold) {
             animationId = requestAnimationFrame(step);
           } else {
             animationId = null;
-            // Snap to nearest card after momentum stops
-            requestAnimationFrame(function () { snapToCard(); scheduleActiveUpdate(); });
           }
         }
         animationId = requestAnimationFrame(step);
-      } else {
-        // Snap even without momentum
-        requestAnimationFrame(function () { snapToCard(); scheduleActiveUpdate(); });
       }
 
       if (isDragging) {
@@ -183,9 +124,11 @@
       if (e.button !== 0) return;
       if (e.target.closest('.carousel__arrow')) return;
       if (e.target.closest('.dropdown') || e.target.closest('button')) return;
+      // Safety: reset if stuck from previous interaction
       if (isDown) { isDown = false; }
       onStart(e.clientX);
     }
+    // Listen on wrap (not just track) to catch drags starting from anywhere in carousel
     wrap.addEventListener('mousedown', handleDown);
     document.addEventListener('mousemove', function (e) {
       if (!isDown) return;
@@ -211,12 +154,6 @@
     track.addEventListener('touchcancel', function () {
       if (isDown) onEnd();
     }, { passive: true });
-
-    // Initial active detection
-    scheduleActiveUpdate();
-
-    // Update on scroll (native scrollbar or wheel)
-    wrap.addEventListener('scroll', scheduleActiveUpdate);
   }
 
   function initAll() {
