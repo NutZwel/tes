@@ -342,7 +342,7 @@
     var id=parseInt(link.getAttribute('data-song-id'),10);
     if(!id)return;
     var x=new XMLHttpRequest();x.open('GET',BASE+'player/info/'+id,true);
-    x.onload=function(){if(x.status===200){var d=JSON.parse(x.responseText);playSong({id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path});}};x.send();
+    x.onload=function(){handleSongResponse(x,id);};x.send();
   }, true); /* ← capture phase */
 
   /* ═══ Play from data-play-now ═══ */
@@ -353,7 +353,7 @@
     var id=parseInt(btn.getAttribute('data-play-now'),10);
     if(!id)return;
     var x=new XMLHttpRequest();x.open('GET',BASE+'player/info/'+id,true);
-    x.onload=function(){if(x.status===200){var d=JSON.parse(x.responseText);playSong({id:d.id,title:d.title,artist:d.artist,file_path:d.file_path,cover_path:d.cover_path});}else{toast('Could not load song');}};
+    x.onload=function(){handleSongResponse(x,id);};
     x.onerror=function(){toast('Network error');};
     x.send();
   });
