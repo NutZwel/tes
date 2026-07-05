@@ -87,15 +87,17 @@
 
   /* ═══ Refresh Continue Listening cards on dashboard ═══ */
   function refreshContinueListening() {
-    var track = document.querySelector('#continue-listening .carousel__track');
+    var wrap = document.querySelector('#continue-listening .carousel__wrap');
+    var track = wrap ? wrap.querySelector('.carousel__track') : null;
     if (!track) return;
     var x = new XMLHttpRequest();
     x.open('GET', BASE + 'dashboard/continue_listening?_t=' + Date.now(), true);
     x.onload = function() {
       if (x.status === 200 && x.responseText.trim()) {
-        // Replace content of carousel__track with fresh partial
         track.innerHTML = x.responseText;
         updateNowPlayingIndicator();
+        // Scroll to the beginning so the now-playing card is visible first
+        wrap.scrollLeft = 0;
       }
     };
     x.send();
