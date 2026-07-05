@@ -726,6 +726,25 @@
       link.innerHTML = '<span class="player__menu-queue-title">' + (s.title || 'Unknown') + '</span>' +
                        '<span class="player__menu-queue-artist">' + (s.artist || '—') + '</span>';
 
+      // Play on click — jump to this song, keep rest of queue below
+      li.style.cursor = 'pointer';
+      li.addEventListener('click', function(ev) {
+        if (ev.target.closest('.player__menu-queue-remove')) return;
+        var idx = parseInt(this.getAttribute('data-idx'), 10);
+        // Move this song to be next in queue
+        var actualIdx = QUEUE_IDX + 1 + idx;
+        var song = QUEUE[actualIdx];
+        if (!song) return;
+        // Remove it from its position
+        QUEUE.splice(actualIdx, 1);
+        // Insert it right after current
+        QUEUE.splice(QUEUE_IDX + 1, 0, song);
+        // Play it
+        QUEUE_IDX++;
+        loadIdx();
+        updateQueueUI();
+      });
+
       // Remove button
       var rmBtn = document.createElement('button');
       rmBtn.className = 'player__menu-queue-remove';
@@ -741,6 +760,8 @@
       li.appendChild(thumb);
       li.appendChild(link);
       li.appendChild(rmBtn);
+      // Store actual idx for click handler
+      li.setAttribute('data-idx', i);
       menuQueueList.appendChild(li);
     });
   }
