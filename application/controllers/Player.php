@@ -47,11 +47,7 @@ class Player extends CI_Controller {
             return;
         }
 
-        // Enforce guest play limit
-        if (!$this->_check_guest_limit()) {
-            return;
-        }
-
+        // Guest limit already enforced in info() — no need to check again
         // Cek apakah file_path adalah URL remote
         if (strpos($song->file_path, 'http') === 0 || strpos($song->file_path, 'https') === 0) {
             session_write_close();
@@ -152,6 +148,11 @@ class Player extends CI_Controller {
      */
     public function info($songId = 0)
     {
+        // Enforce guest play limit BEFORE returning info
+        if (!$this->_check_guest_limit()) {
+            return;
+        }
+
         $this->load->model('Song_model');
         $song = $this->Song_model->get_by_id((int) $songId);
 

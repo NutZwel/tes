@@ -42,20 +42,46 @@
 
   function markPlayed(id) { if (PLAYED_IDS.indexOf(id)===-1) PLAYED_IDS.push(id); }
 
-  /* Global helper for inline onclick (Continue Listening cards etc.) */
+  /* Show guest limit modal — redirect to login/register */
+  function showGuestLimitModal(message) {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10001;background:oklch(0% 0 0 / 0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+
+    var box = document.createElement('div');
+    box.style.cssText = 'background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:16px;padding:40px;max-width:400px;width:90%;text-align:center;box-shadow:0 24px 60px -12px oklch(0% 0 0 / 0.5);';
+
+    box.innerHTML = '<div style="width:56px;height:56px;border-radius:50%;background:color-mix(in oklch,var(--color-accent) 15%,transparent);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 9.5-9.5z"/></svg></div>' +
+      '<div style="font-family:var(--font-display);font-size:var(--text-lg);font-weight:600;color:var(--color-ink);margin-bottom:8px;">Free Limit Reached</div>' +
+      '<div style="font-size:var(--text-sm);color:var(--color-muted);line-height:1.6;margin-bottom:24px;">' + (message || 'Guest can only play 3 tracks per session. Create a free account for unlimited streaming.') + '</div>' +
+      '<div style="display:flex;gap:10px;justify-content:center;"><a href="' + BASE + 'register" style="flex:1;padding:10px 16px;border-radius:999px;border:none;background:var(--color-accent);color:var(--color-paper);font-size:var(--text-sm);font-weight:600;cursor:pointer;text-decoration:none;text-align:center;">Sign Up Free</a>' +
+      '<a href="' + BASE + 'login" style="flex:1;padding:10px 16px;border-radius:999px;border:1px solid var(--color-rule);color:var(--color-ink-2);font-size:var(--text-sm);font-weight:500;cursor:pointer;text-decoration:none;text-align:center;">Log In</a></div>' +
+      '<div style="margin-top:16px;"><button onclick="this.closest(\'[id]\').remove()" style="border:none;background:transparent;color:var(--color-muted);font-size:var(--text-xs);cursor:pointer;">Continue as Guest</button></div>';
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+  }
+
+  /* Handle XHR response for guest limit */
+  function handleSongResponse(x, id) {
+    if (x.status === 200) {
+      var d = JSON.parse(x.responseText);
+      playSong({id: d.id, title: d.title, artist: d.artist, file_path: d.file_path, cover_path: d.cover_path});
+    } else if (x.status === 403) {
+      var msg = 'Guest can only play 3 tracks per session. Create a free account for unlimited streaming.';
+      try { var r = JSON.parse(x.responseText); if (r.error) msg = r.error; } catch(e) {}
+      showGuestLimitModal(msg);
+    } else {
+      toast('Could not load song');
+    }
+  }
+
+  /* Global helper for inline onclick */
   window.playSongById = function(id) {
     if (!id) return;
     var x = new XMLHttpRequest();
     x.open('GET', BASE + 'player/info/' + id, true);
-    x.onload = function() {
-      if (x.status === 200) {
-        var d = JSON.parse(x.responseText);
-        playSong({id: d.id, title: d.title, artist: d.artist, file_path: d.file_path, cover_path: d.cover_path});
-      } else {
-        toast('Could not load song');
-        console.warn('playSongById: status ' + x.status + ' for ID ' + id);
-      }
-    };
+    x.onload = function() { handleSongResponse(x, id); };
     x.onerror = function() { toast('Network error'); };
     x.send();
   };
