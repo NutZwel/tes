@@ -68,13 +68,17 @@
             <!-- Genre -->
             <div class="col-md-6">
               <label for="genre_id" class="form-label" style="color:var(--color-ink);">Genre</label>
-              <select name="genre_id" id="genre_id"
-                      class="form-select" style="background:var(--color-paper);color:var(--color-ink);border-color:var(--color-rule);<?= form_error('genre_id') ? ' border-color:#dc3545;' : '' ?>">
-                <option value="">— Select Genre —</option>
-                <?php foreach ($genres as $g): ?>
-                <option value="<?= $g->id ?>" <?= set_value('genre_id') == $g->id ? 'selected' : '' ?>><?= html_escape($g->name) ?></option>
-                <?php endforeach; ?>
-              </select>
+              <div style="display:flex;gap:6px;">
+                <select name="genre_id" id="genre_id"
+                        class="form-select" style="flex:1;background:var(--color-paper);color:var(--color-ink);border-color:var(--color-rule);<?= form_error('genre_id') ? ' border-color:#dc3545;' : '' ?>">
+                  <option value="">— Select Genre —</option>
+                  <?php foreach ($genres as $g): ?>
+                  <option value="<?= $g->id ?>" <?= set_value('genre_id') == $g->id ? 'selected' : '' ?>><?= html_escape($g->name) ?></option>
+                  <?php endforeach; ?>
+                </select>
+                <button type="button" class="btn btn-outline-light" style="white-space:nowrap;flex-shrink:0;" onclick="document.getElementById('genre_id').disabled=true;document.getElementById('genre_id').style.opacity='0.4';document.getElementById('new_genre_input').style.display='';this.style.display='none';">+ New</button>
+              </div>
+              <input type="text" name="new_genre" id="new_genre_input" placeholder="Enter new genre name" style="display:none;width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--color-rule);background:var(--color-paper);color:var(--color-ink);font-size:var(--text-sm);margin-top:6px;outline:none;">
               <?= form_error('genre_id', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 

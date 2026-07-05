@@ -54,12 +54,21 @@ class Admin extends CI_Controller {
             $this->form_validation->set_rules('artist', 'Artist', 'required|trim|max_length[100]');
             $this->form_validation->set_rules('genre_id', 'Genre', 'integer');
             $this->form_validation->set_rules('duration_seconds', 'Duration', 'integer');
+            $this->form_validation->set_rules('new_genre', 'New Genre', 'trim|max_length[50]|is_unique[genres.name]');
 
             if ($this->form_validation->run()) {
+                // Handle new genre
+                $genreId = (int) $this->input->post('genre_id') ?: NULL;
+                $newGenre = $this->input->post('new_genre', TRUE);
+                if (!empty($newGenre)) {
+                    $this->db->insert('genres', ['name' => $newGenre]);
+                    $genreId = (int) $this->db->insert_id();
+                }
+
                 $insert = [
                     'title'            => $this->input->post('title', TRUE),
                     'artist'           => $this->input->post('artist', TRUE),
-                    'genre_id'         => (int) $this->input->post('genre_id') ?: NULL,
+                    'genre_id'         => $genreId,
                     'duration_seconds' => (int) $this->input->post('duration_seconds') ?: NULL,
                     'description'      => $this->input->post('description', TRUE),
                     'artist_bio'       => $this->input->post('artist_bio', TRUE),
