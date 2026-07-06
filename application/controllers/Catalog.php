@@ -1,6 +1,12 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Catalog — menampilkan katalog lagu dengan paginasi dan pencarian.
+ *
+ * Halaman publik yang menampilkan grid lagu aktif. Mendukung pencarian
+ * berdasarkan judul/artis dan pencarian playlist publik secara bersamaan.
+ */
 class Catalog extends CI_Controller {
 
     public function __construct()
@@ -9,6 +15,14 @@ class Catalog extends CI_Controller {
         $this->load->model('Song_model');
     }
 
+    /**
+     * Tampilkan halaman katalog dengan paginasi.
+     *
+     * Menerima parameter halaman dari URL dan query pencarian (?q=...).
+     * Jika ada query, lakukan pencarian lagu dan playlist publik.
+     *
+     * @param int $page Nomor halaman (opsional, default 1)
+     */
     public function index($page = 1)
     {
         $per_page = 24;

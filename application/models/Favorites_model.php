@@ -1,13 +1,19 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Model Favorites — mengelola lagu favorit user.
+ *
+ * Menyediakan CRUD untuk tabel `favorites` dengan perlindungan
+ * duplikasi dan filter hanya lagu aktif.
+ */
 class Favorites_model extends CI_Model {
 
     /**
-     * Get all favorite songs for a user.
+     * Ambil daftar lagu favorit user, diurutkan dari yang terbaru difavoritkan.
      *
      * @param int $userId
-     * @param int $limit
+     * @param int $limit  Maksimal jumlah lagu
      * @return array
      */
     public function get_by_user($userId, $limit = 20)
@@ -21,6 +27,7 @@ class Favorites_model extends CI_Model {
         $this->db->join('songs', 'songs.id = favorites.song_id');
         $this->db->join('genres', 'genres.id = songs.genre_id', 'left');
         $this->db->where('favorites.user_id', $userId);
+        // Hanya tampilkan lagu yang masih aktif
         $this->db->where('songs.is_active', 1);
         $this->db->order_by('favorites.created_at', 'DESC');
         $this->db->limit($limit);
@@ -28,7 +35,7 @@ class Favorites_model extends CI_Model {
     }
 
     /**
-     * Check if a song is favorited by the user.
+     * Cek apakah suatu lagu sudah difavoritkan user.
      *
      * @param int $userId
      * @param int $songId
@@ -42,7 +49,7 @@ class Favorites_model extends CI_Model {
     }
 
     /**
-     * Add a song to favorites.
+     * Tambah lagu ke favorit. Jika sudah ada, tidak melakukan apa-apa.
      *
      * @param int $userId
      * @param int $songId
@@ -50,6 +57,7 @@ class Favorites_model extends CI_Model {
      */
     public function add($userId, $songId)
     {
+        // Hindari duplikasi — cek dulu sebelum insert
         if ($this->is_favorited($userId, $songId)) return true;
         return $this->db->insert('favorites', [
             'user_id' => $userId,
@@ -58,11 +66,11 @@ class Favorites_model extends CI_Model {
     }
 
     /**
-     * Remove a song from favorites.
+     * Hapus lagu dari favorit.
      *
      * @param int $userId
      * @param int $songId
-     * @return bool
+     * @return bool  true jika ada baris yang terhapus
      */
     public function remove($userId, $songId)
     {
@@ -73,7 +81,7 @@ class Favorites_model extends CI_Model {
     }
 
     /**
-     * Get total count of favorites for a user.
+     * Hitung total favorit milik user.
      *
      * @param int $userId
      * @return int

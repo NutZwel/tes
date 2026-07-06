@@ -1,19 +1,26 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Model User — mengelola data pengguna (users) dan sesi aktif.
+ *
+ * Mencakup registrasi, verifikasi login, pengecekan duplikasi
+ * username/email, serta deteksi user aktif dari tabel ci_sessions.
+ */
 class User_model extends CI_Model {
 
     /**
-     * Create a new user with bcrypt password hash.
+     * Buat user baru dengan password terenkripsi bcrypt.
      *
-     * @param array $data  Keys: username, email, password, display_name (optional)
-     * @return int|false   Inserted user ID, or false on failure
+     * @param array $data  Keys: username, email, password, display_name (opsional)
+     * @return int|false   ID user yang baru dibuat, atau false jika gagal
      */
     public function create(array $data)
     {
         $insert = [
             'username'      => $data['username'],
             'email'         => $data['email'],
+            // Simpan hash, bukan plain text — bcrypt default cost sudah cukup
             'password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
             'display_name'  => $data['display_name'] ?? $data['username'],
         ];
@@ -22,14 +29,18 @@ class User_model extends CI_Model {
     }
 
     /**
-     * Verify login credentials.
+     * Verifikasi kredensial login (username/email + password).
+     *
+     * Menerima input username ATAU email pada satu field,
+     * lalu mencocokkan dengan bcrypt.
      *
      * @param string $username_or_email
-     * @param string $password           Plain-text password
-     * @return object|null               User row on success, null on failure
+     * @param string $password           Password plain-text
+     * @return object|null               Baris user jika cocok, null jika gagal
      */
     public function verify($username_or_email, $password)
     {
+        // Hanya user aktif yang bisa login
         $this->db->where('is_active', 1);
         $this->db->group_start();
         $this->db->where('username', $username_or_email);
@@ -37,6 +48,7 @@ class User_model extends CI_Model {
         $this->db->group_end();
         $user = $this->db->get('users')->row();
 
+        // Verifikasi hash password
         if ($user && password_verify($password, $user->password_hash)) {
             return $user;
         }
@@ -44,9 +56,10 @@ class User_model extends CI_Model {
     }
 
     /**
-     * Get a user by their ID.
+     * Ambil data user berdasarkan ID.
      *
-     * @param int $id
+     * @param int  $id
+     * @param bool $checkActive  Saring hanya user aktif (default true)
      * @return object|null
      */
     public function get_by_id($id, $checkActive = true)
@@ -57,7 +70,7 @@ class User_model extends CI_Model {
     }
 
     /**
-     * Check if a username is already taken.
+     * Cek apakah username sudah dipakai user lain.
      *
      * @param string $username
      * @return bool
@@ -68,7 +81,7 @@ class User_model extends CI_Model {
     }
 
     /**
-     * Check if an email is already taken.
+     * Cek apakah email sudah terdaftar.
      *
      * @param string $email
      * @return bool
@@ -79,7 +92,7 @@ class User_model extends CI_Model {
     }
 
     /**
-     * Get all users ordered by latest.
+     * Ambil semua user diurutkan dari yang terbaru.
      *
      * @return array
      */
@@ -92,15 +105,17 @@ class User_model extends CI_Model {
     }
 
     /**
-     * Get active (logged-in) user IDs from CI sessions.
+     * Dapatkan ID user yang sedang aktif dari tabel sesi CI (dalam 30 menit terakhir).
      *
-     * @return array
+     * Berguna untuk menampilkan daftar user online di dashboard admin.
+     *
+     * @return array  Array unique user ID
      */
     public function get_active_ids()
     {
         $this->db->select('data');
         $this->db->from('ci_sessions');
-        $this->db->where('timestamp >=', time() - 1800);
+        $this->db->where('timestamp >=', time() - 1800); // 30 menit
         $rows = $this->db->get()->result();
         $ids = [];
         foreach ($rows as $r) {
@@ -112,6 +127,15 @@ class User_model extends CI_Model {
         return array_unique($ids);
     }
 
+    /**
+     * Parse manual data sesi CI3 dari format serialized-nya.
+     *
+     * CI3 menyimpan session sebagai string key|serialized_value,
+     * bukan JSON — perlu parsing manual.
+     *
+     * @param string $data
+     * @return array
+     */
     private function _unserialize_ci_session($data)
     {
         $result = [];

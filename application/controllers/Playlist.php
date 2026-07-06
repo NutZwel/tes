@@ -1,6 +1,13 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Playlist — mengelola CRUD playlist dan lagu di dalamnya.
+ *
+ * Menyediakan halaman daftar playlist, detail playlist dengan lagu,
+ * pembuatan playlist baru, edit (nama, deskripsi, cover, banner),
+ * serta endpoint AJAX untuk manajemen cepat dari player.
+ */
 class Playlist extends CI_Controller {
 
     public function __construct()
@@ -11,7 +18,7 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * List all playlists for the logged-in user.
+     * Tampilkan daftar semua playlist milik user.
      */
     public function index()
     {
@@ -30,7 +37,11 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * View a single playlist with its songs.
+     * Lihat detail playlist beserta daftar lagu di dalamnya.
+     *
+     * Menghitung total durasi seluruh lagu untuk ditampilkan.
+     *
+     * @param int $playlistId
      */
     public function view($playlistId = NULL)
     {
@@ -49,7 +60,7 @@ class Playlist extends CI_Controller {
             return;
         }
 
-        // Calculate total duration
+        // Hitung total durasi dari semua lagu
         $totalSeconds = 0;
         if (!empty($playlist->songs)) {
             foreach ($playlist->songs as $s) {
@@ -66,7 +77,10 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Create a new playlist.
+     * Halaman pembuatan playlist baru.
+     *
+     * Validasi input: nama (required), deskripsi (opsional),
+     * dan status publik. Redirect ke halaman playlist setelah sukses.
      */
     public function create()
     {
@@ -99,7 +113,9 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Delete a playlist.
+     * Hapus playlist milik user.
+     *
+     * @param int $playlistId
      */
     public function delete($playlistId = NULL)
     {
@@ -115,7 +131,9 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Add a song to a playlist (POST).
+     * Tambah lagu ke playlist (form POST biasa).
+     *
+     * @param int $playlistId
      */
     public function add_song($playlistId = NULL)
     {
@@ -132,7 +150,10 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * AJAX: Add a song to playlist — auto-creates playlist if name doesn't match existing.
+     * AJAX: Tambah lagu ke playlist — auto-buat playlist jika nama belum ada.
+     *
+     * Menerima song_id dan nama playlist dari POST.
+     * Jika playlist dengan nama tersebut belum ada, buat baru.
      */
     public function add_song_ajax()
     {
@@ -150,7 +171,7 @@ class Playlist extends CI_Controller {
             return;
         }
 
-        // Find existing playlist with this name
+        // Cari playlist yang sudah ada dengan nama tersebut
         $existing = $this->db->where('user_id', $userId)
                               ->where('name', $name)
                               ->get('playlists')
@@ -159,6 +180,7 @@ class Playlist extends CI_Controller {
         if ($existing) {
             $playlistId = (int) $existing->id;
         } else {
+            // Buat playlist baru jika belum ada
             $playlistId = $this->Playlist_model->create($userId, [
                 'title'       => $name,
                 'description' => '',
@@ -172,7 +194,9 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * AJAX: Get user's playlists as JSON.
+     * AJAX: Ambil daftar playlist user sebagai JSON.
+     *
+     * Digunakan oleh dropdown "Add to Playlist" di player.
      */
     public function get_playlists_json()
     {
@@ -190,7 +214,9 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Remove a song from a playlist (POST).
+     * Hapus lagu dari playlist (form POST biasa).
+     *
+     * @param int $playlistId
      */
     public function remove_song($playlistId = NULL)
     {
@@ -202,7 +228,12 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Edit playlist name, description, cover.
+     * Edit playlist — nama, deskripsi, cover, dan banner.
+     *
+     * Mendukung unggah file cover/banner serta penghapusan
+     * cover/banner yang sudah ada.
+     *
+     * @param int $playlistId
      */
     public function edit($playlistId = NULL)
     {
@@ -225,6 +256,7 @@ class Playlist extends CI_Controller {
                     'description' => $this->input->post('description', TRUE),
                 ];
 
+                // Upload cover image
                 if (!empty($_FILES['cover_file']['name'])) {
                     $this->load->library('upload');
                     $dir = 'protected_uploads/covers/';
@@ -243,6 +275,7 @@ class Playlist extends CI_Controller {
                     }
                 }
 
+                // Upload banner image
                 if (!empty($_FILES['banner_file']['name'])) {
                     $this->load->library('upload');
                     $dir = 'protected_uploads/covers/';
@@ -261,6 +294,7 @@ class Playlist extends CI_Controller {
                     }
                 }
 
+                // Hapus cover/banner jika diminta
                 if ($this->input->post('remove_cover')) {
                     $update['cover_path'] = NULL;
                 }

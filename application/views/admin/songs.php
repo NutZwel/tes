@@ -1,3 +1,10 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: admin/songs.php
+     Tabel manajemen lagu untuk admin.
+     Menampilkan semua lagu (termasuk yang tidak aktif) dalam
+     tabel dengan kolom ID, judul, artis, genre, durasi, status
+     aktif, tanggal dibuat, dan tombol Edit/Delete.
+     ──────────────────────────────────────────────── -->
 <section class="py-4">
   <div class="container">
 

@@ -1,3 +1,10 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: admin/index.php
+     Dashboard admin — menampilkan statistik (total user,
+     active now, total songs) dan tabel daftar user
+     dengan status online, role, dan tombol enable/disable.
+     Hanya dapat diakses oleh user dengan role admin.
+     ──────────────────────────────────────────────── -->
 <section class="py-5">
   <div class="container">
 
@@ -16,7 +23,7 @@
       </div>
     </header>
 
-    <!-- Stats Cards -->
+    <!-- Kartu Statistik -->
     <div class="row g-4 mb-5">
       <div class="col-md-4">
         <div class="card border-secondary h-100" style="background:var(--color-paper-2);">
@@ -44,7 +51,7 @@
       </div>
     </div>
 
-    <!-- Users Table -->
+    <!-- Tabel User -->
     <div class="card border-secondary" style="background:var(--color-paper-2);">
       <div class="card-header border-secondary" style="background:transparent;">
         <h2 style="font-family:var(--font-display);font-size:var(--text-lg);font-weight:300;color:var(--color-ink);" class="m-0">Registered Users</h2>
@@ -85,6 +92,7 @@
               </td>
               <td class="small" style="color:var(--color-muted);border-color:var(--color-rule);background:transparent !important;"><?= date('M j, Y', strtotime($u->created_at)) ?></td>
               <td style="border-color:var(--color-rule);background:transparent !important;">
+                <!-- Toggle enable/disable user — hanya untuk admin -->
                 <a href="<?= base_url('admin/toggle_user/'.$u->id) ?>" class="btn btn-sm btn-outline-secondary"><?= $u->is_active ? 'Disable' : 'Enable' ?></a>
               </td>
             </tr>

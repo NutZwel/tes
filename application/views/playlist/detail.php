@@ -1,3 +1,12 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: playlist/detail.php
+     Halaman detail playlist dengan hero gradient (banner opsional),
+     cover art, metadata (nama, deskripsi, jumlah lagu, total durasi),
+     tombol aksi (play all, edit, delete), dan tabel daftar lagu.
+     Setiap baris lagu menampilkan nomor, cover, judul, artis, genre,
+     durasi, dan dropdown menu untuk queue/playlist/favorite/remove.
+     Mendukung empty state ketika tidak ada lagu di playlist.
+     ──────────────────────────────────────────────── -->
 <section class="text-light" id="pl-detail">
   <style>
     .pl-gradient {
@@ -80,7 +89,7 @@
     </div>
   </div>
 
-  <!-- ACTIONS -->
+  <!-- TOMBOL AKSI -->
   <div class="container py-3">
     <div class="d-flex gap-3 align-items-center">
       <button class="btn btn-success rounded-circle d-flex align-items-center justify-content-center p-0 shadow" style="width:56px;height:56px;" data-play-list="<?= $playlist->id ?>">
@@ -96,7 +105,7 @@
     </div>
   </div>
 
-  <!-- TRACKLIST -->
+  <!-- TABEL LAGU -->
   <div class="container pb-5" style="min-height:50vh;">
     <?php if (!empty($playlist->songs)): ?>
     <div class="table-responsive">
@@ -142,6 +151,7 @@
             <td class="d-none d-lg-table-cell text-secondary"><?= html_escape($song->genre_name ?: '—') ?></td>
             <td class="text-secondary"><?= $song->duration_seconds ? gmdate('i:s', $song->duration_seconds) : '—' ?></td>
             <td>
+              <!-- Dropdown aksi per lagu di dalam playlist -->
               <div class="dropdown" style="position:static;">
                 <button class="btn btn-link text-secondary p-0" data-bs-toggle="dropdown" aria-label="More" type="button">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
@@ -161,6 +171,7 @@
       </table>
     </div>
     <?php else: ?>
+    <!-- Empty state — playlist kosong -->
     <div class="text-center py-5">
       <div class="mb-4">
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round" class="text-secondary"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>

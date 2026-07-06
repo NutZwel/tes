@@ -1,11 +1,19 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Model Listen_History — mencatat dan mengambil riwayat pemutaran lagu.
+ *
+ * Mencakup log pemutaran per user, lagu yang sedang tren secara global,
+ * rekomendasi berdasarkan genre favorit, serta pembersihan riwayat.
+ */
 class Listen_history_model extends CI_Model {
 
     /**
-     * Get recently played tracks for a user.
-     * Deduplicates consecutive plays of the same song.
+     * Ambil lagu yang baru didengarkan user (deduplikasi per song_id).
+     *
+     * Menggunakan GROUP BY agar lagu yang sama tidak muncul
+     * berurutan jika diputar beberapa kali.
      *
      * @param int $userId
      * @param int $limit
@@ -30,11 +38,11 @@ class Listen_history_model extends CI_Model {
     }
 
     /**
-     * Log a play event.
+     * Catat event pemutaran lagu oleh user.
      *
      * @param int $userId
      * @param int $songId
-     * @return int  Inserted history entry ID
+     * @return int  ID entri history
      */
     public function log_play($userId, $songId)
     {
@@ -46,7 +54,7 @@ class Listen_history_model extends CI_Model {
     }
 
     /**
-     * Count total listens for a user.
+     * Hitung total pemutaran oleh user.
      *
      * @param int $userId
      * @return int
@@ -57,7 +65,7 @@ class Listen_history_model extends CI_Model {
     }
 
     /**
-     * Get all listen history entries for a user.
+     * Ambil seluruh riwayat pemutaran user.
      *
      * @param int $userId
      * @param int $limit
@@ -80,7 +88,7 @@ class Listen_history_model extends CI_Model {
     }
 
     /**
-     * Clear listen history for a user.
+     * Hapus seluruh riwayat pemutaran user.
      *
      * @param int $userId
      * @return bool
@@ -91,10 +99,12 @@ class Listen_history_model extends CI_Model {
     }
 
     /**
-     * Get trending songs based on total play count across all users.
+     * Ambil lagu yang sedang tren berdasarkan jumlah pemutaran.
+     *
+     * Digunakan di dashboard untuk menampilkan section "Trending".
      *
      * @param int $limit
-     * @param int $days   Lookback period
+     * @param int $days   Periode lookback dalam hari
      * @return array
      */
     public function get_trending($limit = 8, $days = 14)
@@ -117,7 +127,12 @@ class Listen_history_model extends CI_Model {
     }
 
     /**
-     * Get song recommendations for a user based on their most-played genres.
+     * Dapatkan rekomendasi lagu untuk user berdasarkan genre favorit.
+     *
+     * Mengidentifikasi 3 genre yang paling sering diputar user,
+     * lalu mengambil lagu dari genre tersebut (kecuali yang sudah
+     * difavoritkan atau didengarkan dalam 7 hari terakhir).
+     * Jika tidak ada data pemutaran, kembalikan lagu terbaru sebagai fallback.
      *
      * @param int   $userId
      * @param int   $limit
@@ -125,7 +140,7 @@ class Listen_history_model extends CI_Model {
      */
     public function get_recommendations($userId, $limit = 8)
     {
-        // Find genres the user listens to most
+        // Langkah 1: cari genre favorit user dari riwayat pemutaran
         $subSql = "
             SELECT g.id, COUNT(*) AS cnt
             FROM listen_history h
@@ -139,8 +154,8 @@ class Listen_history_model extends CI_Model {
         $genres = $this->db->query($subSql, [(int) $userId])->result();
         $genreIds = array_map(function($g) { return $g->id; }, $genres);
 
+        // Fallback: jika belum ada riwayat, tampilkan lagu terbaru
         if (empty($genreIds)) {
-            // Fallback: latest songs
             $this->db->select('songs.id, songs.title, songs.artist, songs.duration_seconds, songs.cover_path, songs.file_path, songs.is_active, genres.name AS genre_name');
             $this->db->from('songs');
             $this->db->join('genres', 'genres.id = songs.genre_id', 'left');
@@ -150,7 +165,7 @@ class Listen_history_model extends CI_Model {
             return $this->db->get()->result();
         }
 
-        // Exclude already-favorited or recently-listened songs
+        // Langkah 2: kecualikan lagu yang sudah difavoritkan atau baru didengar
         $excludeSql = "
             SELECT song_id FROM favorites WHERE user_id = ?
             UNION
@@ -164,6 +179,7 @@ class Listen_history_model extends CI_Model {
         $this->db->join('genres', 'genres.id = songs.genre_id', 'left');
         $this->db->where('songs.is_active', 1);
         $this->db->where_in('songs.genre_id', $genreIds);
+        // Jangan rekomendasikan lagu yang sudah dikenal user
         if (!empty($excludeIds)) {
             $this->db->where_not_in('songs.id', $excludeIds);
         }

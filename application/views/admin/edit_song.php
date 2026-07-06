@@ -1,3 +1,9 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: admin/edit_song.php
+     Form edit lagu — memperbarui metadata dan/atau file audio/cover.
+     Field yang diisi akan diupdate; field kosong pada file upload
+     berarti mempertahankan file yang ada.
+     ──────────────────────────────────────────────── -->
 <section class="py-5">
   <div class="container">
 
@@ -37,7 +43,7 @@
     </div>
     <?php endif; ?>
 
-    <!-- Form -->
+    <!-- Form — repopulasi data dari database (set_value dengan fallback $song->...) -->
     <?= form_open_multipart('admin/edit_song/'.$song->id, ['class' => '']) ?>
 
       <div class="card border-secondary" style="background:var(--color-paper-2);">
@@ -45,7 +51,7 @@
 
           <div class="row g-4">
 
-            <!-- Song Title -->
+            <!-- Judul Lagu -->
             <div class="col-12">
               <label for="title" class="form-label" style="color:var(--color-ink);">Song Title <span class="text-danger">*</span></label>
               <input type="text" name="title" id="title"
@@ -55,7 +61,7 @@
               <?= form_error('title', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Artist -->
+            <!-- Artis -->
             <div class="col-12">
               <label for="artist" class="form-label" style="color:var(--color-ink);">Artist <span class="text-danger">*</span></label>
               <input type="text" name="artist" id="artist"
@@ -78,7 +84,7 @@
               <?= form_error('genre_id', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Duration -->
+            <!-- Durasi -->
             <div class="col-md-6">
               <label for="duration_seconds" class="form-label" style="color:var(--color-ink);">Duration (seconds)</label>
               <input type="number" name="duration_seconds" id="duration_seconds"
@@ -88,7 +94,7 @@
               <?= form_error('duration_seconds', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Description -->
+            <!-- Deskripsi -->
             <div class="col-12">
               <label for="description" class="form-label" style="color:var(--color-ink);">Song Description</label>
               <textarea name="description" id="description"
@@ -97,7 +103,7 @@
               <?= form_error('description', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Artist Bio -->
+            <!-- Bio Artis -->
             <div class="col-12">
               <label for="artist_bio" class="form-label" style="color:var(--color-ink);">Artist Bio</label>
               <textarea name="artist_bio" id="artist_bio"
@@ -106,7 +112,7 @@
               <?= form_error('artist_bio', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Audio Upload -->
+            <!-- Upload Audio — dikosongkan berarti mempertahankan file lama -->
             <div class="col-12">
               <label class="form-label" style="color:var(--color-ink);">Audio File <span class="text-secondary" style="font-size:var(--text-xs);">(current: <?= html_escape($song->file_path ?: 'No file') ?>)</span></label>
               <label for="audio_file" class="upload-box" style="cursor:pointer;">
@@ -122,7 +128,7 @@
               <?= form_error('audio_file', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Cover Upload -->
+            <!-- Upload Cover — dikosongkan berarti mempertahankan cover lama -->
             <div class="col-12">
               <label class="form-label" style="color:var(--color-ink);">
                 Cover Image

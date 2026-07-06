@@ -1,12 +1,27 @@
+<!-- ─────────────────────────────────────────────────────────────────────
+     VIEW: templates/layout.php
+     Master layout shell untuk seluruh aplikasi.
+
+     Pada request PJAX (terdeteksi dari header X-PJAX atau query _pjax),
+     file ini hanya mengoutput <title> dan konten view utama di dalam
+     #pjax-content — tanpa wrapper <html>/<head>/<body>, tanpa script,
+     tanpa nav.
+
+     Pada full page load (non-PJAX), merender dokumen HTML5 lengkap:
+       - CSS variabel tema di-inline sebagai <style> dari session user
+       - CSS animasi tema (starshower, aurora, matrix, bubble)
+       - Navbar, footer, audio player, modal dialog, dan semua JS bundle
+     ───────────────────────────────────────────────────────────────────── -->
+
 <?php
 $isPjax = !empty($_SERVER['HTTP_X_PJAX']) || !empty($_GET['_pjax']);
 
-// Get user theme preferences from session
+// Ambil preferensi tema dari session user
 $themeStyle = $this->session->userdata('theme_style') ?: 'cobalt';
 $themeColor = $this->session->userdata('theme_color') ?: 'blue';
 $themeBgCss = $this->session->userdata('theme_bg_css') ?: '';
 
-// Theme presets — full color schemes
+// Tema preset — skema warna lengkap dalam OKLCH
 $themePresets = [
   'cobalt' => [
     'paper' => 'oklch(12% 0.006 250)', 'paper2' => 'oklch(16% 0.008 250)', 'paper3' => 'oklch(20% 0.008 250)',
@@ -56,7 +71,7 @@ $themePresets = [
     'neutral' => 'oklch(48% 0.025 345)', 'rule' => 'oklch(28% 0.02 345)',
     'label' => 'Rosé Pine', 'desc' => 'Muted rose',
   ],
-  // Animated themes (use cobalt colors + CSS animation)
+  // Tema animasi (menggunakan warna cobalt + CSS animation)
   'starshower' => [
     'paper' => 'oklch(12% 0.006 250)', 'paper2' => 'oklch(16% 0.008 250)', 'paper3' => 'oklch(20% 0.008 250)',
     'ink' => 'oklch(93% 0.005 80)', 'ink2' => 'oklch(85% 0.006 80)', 'muted' => 'oklch(60% 0.008 250)',
@@ -85,7 +100,7 @@ $themePresets = [
 
 $preset = $themePresets[$themeStyle] ?? $themePresets['cobalt'];
 
-// Accent color mapping
+// Mapping warna aksen
 $accentColors = [
   'blue'   => 'oklch(62% 0.20 255)', 'purple' => 'oklch(60% 0.22 290)',
   'green'  => 'oklch(62% 0.20 145)', 'orange' => 'oklch(65% 0.20 70)',
@@ -109,9 +124,11 @@ if ($isPjax):
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Nonaktifkan cache agar navigasi PJAX selalu mengambil konten segar -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <title><?= $title ?? 'Laufey — Music Player & Downloader' ?></title>
+  <!-- Cache-bust via filemtime untuk memaksa re-download saat aset berubah -->
   <link href="<?= base_url('public/css/bootstrap.min.css?v=' . filemtime(FCPATH . 'public/css/bootstrap.min.css')) ?>" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('public/css/tokens.css?v=' . filemtime(FCPATH . 'public/css/tokens.css')) ?>">
   <script>var BASE = '<?= base_url() ?>';</script>
@@ -142,8 +159,6 @@ body.theme-anim .footer{--footer-bg:color-mix(in oklch,var(--color-paper) 75%,tr
 <?php if ($themeStyle==='starshower'): ?>
 @keyframes twinkle{0%,100%{opacity:.2}50%{opacity:1}}
 body.theme-starshower::before{background:radial-gradient(2px 2px at 20% 30%,rgba(255,255,255,.9),transparent),radial-gradient(2px 2px at 40% 70%,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 60% 20%,rgba(255,255,255,.6),transparent),radial-gradient(1px 1px at 80% 50%,rgba(255,255,255,.8),transparent),radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,.5),transparent);animation:twinkle 3s ease-in-out infinite}
-@keyframes starfall{0%{transform:translateY(-10vh) translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(110vh) translateX(80px);opacity:0}}
-body.theme-starshower::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;background:linear-gradient(90deg,transparent,transparent 40%,#fff 40%,#fff 41%,transparent 41%) 0 0/200px 120vh;mask:linear-gradient(transparent 85%,#fff);-webkit-mask:linear-gradient(transparent 85%,#fff);animation:starfall 3s linear infinite}
 <?php endif; ?>
 <?php if ($themeStyle==='aurora'): ?>
 @keyframes aurora-wave{0%{transform:translateX(-50%) scaleY(1)}50%{transform:translateX(0%) scaleY(1.4)}100%{transform:translateX(-50%) scaleY(1)}}
@@ -172,6 +187,7 @@ body.theme-bubble::before{background:radial-gradient(circle at 15% 75%,oklch(62%
   <?php $this->load->view('templates/footer', compact('isLoggedIn')); ?>
   <?php $this->load->view('templates/player'); ?>
 
+  <!-- Cache-bust via filemtime untuk memaksa re-download saat aset berubah -->
   <script src="<?= base_url('public/js/bootstrap.bundle.min.js?v=' . filemtime(FCPATH . 'public/js/bootstrap.bundle.min.js')) ?>"></script>
   <?php $this->load->view('templates/modal'); ?>
   <script src="<?= base_url('public/js/carousel.js?v=' . filemtime(FCPATH . 'public/js/carousel.js')) ?>"></script>

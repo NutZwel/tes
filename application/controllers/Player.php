@@ -1,19 +1,32 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Player — menangani streaming lagu, lirik, dan kontrol pemutaran.
+ *
+ * Endpoint AJAX yang digunakan oleh player.js untuk:
+ * - Stream audio dengan dukungan HTTP Range (seeking)
+ * - Mengambil info lagu (JSON)
+ * - Mengambil lirik (dari DB lokal atau LRCLIB API)
+ * - Mendapatkan lagu acak untuk mode shuffle
+ *
+ * Menerapkan batas 3 pemutaran per sesi untuk guest.
+ */
 class Player extends CI_Controller {
 
     const MAX_GUEST_PLAYS = 3;
 
     /**
-     * Enforce guest play limit (3 plays per session).
-     * Returns true if allowed, false if limit exceeded.
+     * Periksa batas pemutaran guest: maksimal 3 lagu per sesi.
+     *
+     * @return bool true jika diizinkan, false jika melebihi batas
      */
     private function _check_guest_limit(): bool
     {
         $userId = (int) $this->session->userdata('user_id');
+        // User terdaftar tidak memiliki batas pemutaran
         if ($userId > 0) {
-            return true; // registered users have no limit
+            return true;
         }
 
         $playCount = (int) $this->session->userdata('guest_plays');
@@ -27,15 +40,19 @@ class Player extends CI_Controller {
             return false;
         }
 
-        // Increment counter
+        // Increment counter di session
         $this->session->set_userdata('guest_plays', $playCount + 1);
         return true;
     }
 
     /**
-     * Stream an audio file by song ID.
-     * Uses file path from database — never exposes direct URL.
-     * Enforces guest 3-play/session limit.
+     * Stream audio berdasarkan ID lagu.
+     *
+     * Mengambil path file dari database, bukan URL langsung.
+     * Mendukung file lokal dan remote (HTTP/HTTPS).
+     * Mencatat riwayat pemutaran untuk user terdaftar.
+     *
+     * @param int $songId
      */
     public function stream($songId = 0)
     {
@@ -47,7 +64,7 @@ class Player extends CI_Controller {
             return;
         }
 
-        // Guest limit already enforced in info() — no need to check again
+        // Guest limit sudah diperiksa di info() — tidak perlu periksa ulang
         // Cek apakah file_path adalah URL remote
         if (strpos($song->file_path, 'http') === 0 || strpos($song->file_path, 'https') === 0) {
             session_write_close();
@@ -66,21 +83,24 @@ class Player extends CI_Controller {
             return;
         }
 
-        // Log listen for logged-in users
+        // Catat pemutaran hanya untuk user yang login
         $userId = (int) $this->session->userdata('user_id');
         if ($userId > 0) {
             $this->load->model('Listen_history_model');
             $this->Listen_history_model->log_play($userId, $song->id);
         }
 
-        // Stream file with HTTP Range support (for seeking)
+        // Stream dengan dukungan HTTP Range agar user bisa seek
         $this->_stream_file($filePath);
     }
 
     /**
-     * Stream a file with HTTP Range (206 Partial Content) support.
-     * Uses readfile() for full requests and fread with large buffer for ranges.
-     * Releases session lock before streaming to prevent blocking.
+     * Stream file dengan dukungan HTTP Range (206 Partial Content).
+     *
+     * Melepas session lock sebelum streaming agar request AJAX lain
+     * tidak terblokir. Menggunakan buffer 512KB untuk range request.
+     *
+     * @param string $filePath Path absolut ke file audio
      */
     private function _stream_file($filePath)
     {
@@ -91,7 +111,7 @@ class Player extends CI_Controller {
         $end = $fileSize - 1;
         $isRange = false;
 
-        // Parse Range header
+        // Parse header Range untuk partial content
         if (isset($_SERVER['HTTP_RANGE'])) {
             preg_match('/bytes=(\d+)-(\d*)/', $_SERVER['HTTP_RANGE'], $matches);
             $start = intval($matches[1]);
@@ -99,17 +119,17 @@ class Player extends CI_Controller {
             $isRange = true;
         }
 
-        // Validate range
+        // Validasi range
         if ($start > $end || $start >= $fileSize) {
             header('HTTP/1.1 416 Requested Range Not Satisfiable');
             header('Content-Range: bytes */' . $fileSize);
             exit;
         }
 
-        // ═══ Release session lock so other AJAX requests aren't blocked ═══
+        // ═══ Lepas session lock agar request AJAX lain tidak terblokir ═══
         session_write_close();
 
-        // Set common headers
+        // Header umum
         header('Accept-Ranges: bytes');
         header('Content-Type: ' . $mimeType);
         header('Content-Disposition: inline; filename="' . basename($filePath) . '"');
@@ -122,12 +142,12 @@ class Player extends CI_Controller {
             header('Content-Range: bytes ' . $start . '-' . $end . '/' . $fileSize);
             header('Content-Length: ' . ($end - $start + 1));
 
-            // For range requests: seek and output with large buffer
+            // Baca dan kirim byte yang diminta
             $fp = fopen($filePath, 'rb');
             if (!$fp) { return; }
             fseek($fp, $start);
             $left = $end - $start + 1;
-            $chunkSize = 524288; // 512KB
+            $chunkSize = 524288; // 512KB per iterasi
             while ($left > 0 && !feof($fp)) {
                 $read = min($chunkSize, $left);
                 echo fread($fp, $read);
@@ -136,7 +156,7 @@ class Player extends CI_Controller {
             }
             fclose($fp);
         } else {
-            // Full file: use readfile() — Apache handles it efficiently
+            // Full file: readfile() sudah efisien untuk kasus ini
             header('Content-Length: ' . $fileSize);
             readfile($filePath);
         }
@@ -144,11 +164,16 @@ class Player extends CI_Controller {
     }
 
     /**
-     * Return song info as JSON (for player.js to fetch).
+     * Return info lagu sebagai JSON (dipanggil oleh player.js).
+     *
+     * Guest limit diperiksa di sini SEBELUM info dikembalikan,
+     * sehingga guest tetap bisa membuka halaman tetapi tidak bisa memutar.
+     *
+     * @param int $songId
      */
     public function info($songId = 0)
     {
-        // Enforce guest play limit BEFORE returning info
+        // Periksa batas guest SEBELUM mengembalikan info
         if (!$this->_check_guest_limit()) {
             return;
         }
@@ -173,11 +198,14 @@ class Player extends CI_Controller {
     }
 
     /**
-     * Call LRCLIB API — tries cURL first, then file_get_contents fallback.
+     * Request GET ke LRCLIB API — coba cURL dulu, fallback file_get_contents.
+     *
+     * @param string $url URL API LRCLIB
+     * @return string|null Respons JSON atau null jika gagal
      */
     private function _lrclib_get($url)
     {
-        // Try cURL first
+        // Prioritaskan cURL karena lebih andal untuk koneksi HTTPS
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL            => $url,
@@ -193,7 +221,7 @@ class Player extends CI_Controller {
         curl_close($ch);
         if ($httpCode === 200 && !empty($result)) return $result;
 
-        // Fallback: file_get_contents
+        // Fallback: file_get_contents dengan stream context
         $opts = [
             'http' => [
                 'method' => 'GET',
@@ -211,9 +239,18 @@ class Player extends CI_Controller {
     }
 
     /**
-     * Return lyrics for a song as JSON.
-     * First checks local DB via Lyrics_model, then falls back to LRCLIB API.
-     * Found results are cached locally for future requests.
+     * Ambil lirik lagu sebagai JSON.
+     *
+     * Strategi pencarian bertingkat (fallback chain):
+     * 1. Cek database lokal
+     * 2. LRCLIB API — exact match (/api/get)
+     * 3. LRCLIB API — search (/api/search)
+     * 4. Coba dengan nama artis utama (sebelum feat./&)
+     * 5. Coba dengan tambahan "feat." di judul lagu
+     *
+     * Setiap hasil dari API disimpan (cache) ke database lokal.
+     *
+     * @param int $songId
      */
     public function lyrics($songId = 0)
     {
@@ -223,7 +260,7 @@ class Player extends CI_Controller {
             return;
         }
 
-        // Check local DB first
+        // Langkah 1: cek database lokal dulu
         $this->load->model('Lyrics_model');
         $row = $this->Lyrics_model->get_by_song($songId);
 
@@ -237,7 +274,7 @@ class Player extends CI_Controller {
             return;
         }
 
-        // Not in DB — fetch from LRCLIB API
+        // Langkah 2: fetch dari LRCLIB API
         $this->load->model('Song_model');
         $song = $this->Song_model->get_by_id($songId);
         if (!$song) {
@@ -245,7 +282,7 @@ class Player extends CI_Controller {
             return;
         }
 
-        // Try exact match via /api/get
+        // Coba exact match via /api/get
         $artist = rawurlencode($song->artist);
         $title  = rawurlencode($song->title);
         $apiUrl = "https://lrclib.net/api/get?artist_name={$artist}&track_name={$title}";
@@ -265,7 +302,7 @@ class Player extends CI_Controller {
             }
         }
 
-        // Fallback 1: try search
+        // Fallback 1: coba search endpoint
         $searchUrl = "https://lrclib.net/api/search?artist_name={$artist}&track_name={$title}";
         $response = $this->_lrclib_get($searchUrl);
         if ($response) {
@@ -282,7 +319,7 @@ class Player extends CI_Controller {
             }
         }
 
-        // Fallback 2: try with just the main artist (before "feat." or "&")
+        // Fallback 2: coba dengan nama artis utama (sebelum "feat.", "ft.", atau "&")
         $mainArtist = preg_replace('/\s*(feat\.?|ft\.?|&).*/i', '', $song->artist);
         $mainArtist = trim($mainArtist);
         if ($mainArtist !== $song->artist) {
@@ -303,7 +340,7 @@ class Player extends CI_Controller {
             }
         }
 
-        // Fallback 3: try prepending "feat." part to track name (e.g. "Location Unknown feat. NIKI")
+        // Fallback 3: coba tambahkan "feat." ke judul lagu
         $firstArtist = explode(' ', trim($song->artist))[0];
         $featName = '';
         if (stripos($song->artist, 'feat.') !== false) {
@@ -327,7 +364,6 @@ class Player extends CI_Controller {
             $searchUrl3 = "https://lrclib.net/api/get?artist_name=" . rawurlencode($firstArtist) . "&track_name=" . rawurlencode($fullTrack);
             $response = $this->_lrclib_get($searchUrl3);
             if (!$response) {
-                // Try search instead
                 $searchUrl3 = "https://lrclib.net/api/search?artist_name=" . rawurlencode($firstArtist) . "&track_name=" . rawurlencode($fullTrack);
                 $response = $this->_lrclib_get($searchUrl3);
                 if ($response) {
@@ -356,12 +392,25 @@ class Player extends CI_Controller {
         $this->output->set_content_type('application/json')->set_output(json_encode(['content' => null]));
     }
 
+    /**
+     * Simpan lirik ke database lokal (cache).
+     *
+     * @param int    $songId
+     * @param string $content
+     * @param string $format
+     */
     private function _cache_lyrics($songId, $content, $format)
     {
         $this->load->model('Lyrics_model');
         $this->Lyrics_model->cache($songId, $content, $format);
     }
 
+    /**
+     * Kirim response JSON berisi lirik.
+     *
+     * @param string $content
+     * @param string $format
+     */
     private function _return_lyrics($content, $format)
     {
         $this->output
@@ -373,9 +422,11 @@ class Player extends CI_Controller {
     }
 
     /**
-     * Return a random active song as JSON (for shuffle mode).
-     * Accepts ?exclude=id1,id2,id3 to exclude already-played songs.
-     * Returns 404 when all songs are exhausted (client resets and retries).
+     * Ambil satu lagu acak sebagai JSON (untuk mode shuffle).
+     *
+     * Menerima parameter ?exclude=id1,id2,id3 untuk mengecualikan
+     * lagu yang sudah diputar. Mengembalikan 404 jika semua lagu
+     * sudah di-exclude (client akan mereset dan mencoba ulang).
      */
     public function random()
     {
@@ -386,11 +437,13 @@ class Player extends CI_Controller {
         $this->db->from('songs');
         $this->db->where('is_active', 1);
 
+        // Jangan pilih lagu yang sudah ada di daftar exclude
         if (!empty($exclude)) {
             $ids = array_map('intval', explode(',', $exclude));
             $this->db->where_not_in('id', $ids);
         }
 
+        // ORDER BY RAND() — sederhana untuk dataset kecil
         $this->db->order_by('RAND()');
         $this->db->limit(1);
         $song = $this->db->get()->row();

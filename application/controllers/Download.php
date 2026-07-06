@@ -1,6 +1,17 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Download — melayani unduhan lagu dengan pembatasan akses.
+ *
+ * Menerapkan kebijakan:
+ * - Guest: maksimal 1 unduhan per hari per alamat IP
+ * - User terdaftar: tanpa batas
+ * - Admin: tanpa batas
+ *
+ * File dikirim melalui force_download() dengan path absolut dari database,
+ * bukan URL langsung (mencegah akses file tanpa otorisasi).
+ */
 class Download extends CI_Controller {
 
     public function __construct()
@@ -11,11 +22,12 @@ class Download extends CI_Controller {
     }
 
     /**
-     * Serve a file for download.
+     * Proses unduhan file lagu berdasarkan ID.
      *
-     * Guest (not logged in): max 1 download/day per IP.
-     * Registered user: unlimited.
-     * Admin: unlimited.
+     * Memeriksa otorisasi (guest vs terdaftar), mencatat log,
+     * lalu mengirim file ke browser via force_download().
+     *
+     * @param int $songId
      */
     public function index($songId = 0)
     {
@@ -34,7 +46,7 @@ class Download extends CI_Controller {
         $userId = (int) $this->session->userdata('user_id');
         $isGuest = ($userId <= 0);
 
-        // Enforce guest limit: 1 download per IP per day
+        // Batasi guest: hanya 1 unduhan per IP per hari
         if ($isGuest) {
             $ip = $this->input->ip_address();
             $today = date('Y-m-d');
@@ -46,7 +58,7 @@ class Download extends CI_Controller {
             }
         }
 
-        // Resolve absolute file path
+        // Resolve path absolut ke file audio
         $filePath = FCPATH . $song->file_path;
         if (!file_exists($filePath)) {
             log_message('error', 'Download file not found: ' . $filePath);
@@ -54,7 +66,7 @@ class Download extends CI_Controller {
             return;
         }
 
-        // Log the download
+        // Catat aktivitas download
         $clientIp = $isGuest ? $this->input->ip_address() : '';
         $this->Download_logs_model->log_download(
             $isGuest ? null : $userId,
@@ -62,13 +74,16 @@ class Download extends CI_Controller {
             $songId
         );
 
-        // Serve the file via force_download using absolute server path
+        // Kirim file ke browser menggunakan path server absolut
         $this->load->helper('download');
         force_download($filePath, null);
     }
 
     /**
-     * Download page — show songs with download links.
+     * Halaman unduhan — menampilkan daftar lagu yang bisa di-download.
+     *
+     * Sama seperti katalog tetapi dengan tombol download dan
+     * info pembatasan untuk guest.
      */
     public function page()
     {

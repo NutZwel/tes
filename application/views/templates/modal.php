@@ -1,3 +1,15 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: templates/modal.php
+     Dua elemen native <dialog> untuk seluruh aplikasi:
+       1. confirmDlg — Modal konfirmasi umum (misal
+          "Hapus playlist/lagu/akun").
+       2. pickerDlg — Pemilih playlist: menampilkan
+          playlist yang ada dan field "Buat + tambah".
+     Juga berisi JS inline yang menggerakkan keduanya:
+       window.showConfirmModal(href, action)
+       window.showPlaylistPicker(songId)
+     ──────────────────────────────────────────────── -->
+
 <style>
   dialog.lf-dialog {
     position: fixed;
@@ -24,7 +36,7 @@
   .pl-picker-item small { font-size: 12px; }
 </style>
 
-<!-- ═══ Native <dialog> Confirm ═══ -->
+<!-- ═══ Native <dialog> Konfirmasi ═══ -->
 <dialog id="confirmDlg" class="lf-dialog" style="padding:32px 28px 24px;max-width:360px;width:90vw;text-align:center;">
   <h5 id="dlg-title" style="margin:0 0 8px;font-size:18px;color:var(--color-ink);">Are you sure?</h5>
   <p id="dlg-desc" style="margin:0 0 20px;font-size:14px;color:var(--color-muted);">This action cannot be undone.</p>
@@ -34,7 +46,7 @@
   </div>
 </dialog>
 
-<!-- ═══ Native <dialog> Playlist Picker ═══ -->
+<!-- ═══ Native <dialog> Pemilih Playlist ═══ -->
 <dialog id="pickerDlg" class="lf-dialog" style="padding:0;max-width:420px;width:90vw;overflow:hidden;">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--color-rule);">
     <h5 style="margin:0;font-size:16px;color:var(--color-ink);">Add to Playlist</h5>
@@ -53,7 +65,7 @@
 (function() {
   'use strict';
 
-  /* ═══ Confirm Dialog ═══ */
+  /* ═══ Dialog Konfirmasi ═══ */
   var dlg = document.getElementById('confirmDlg');
   if (dlg) {
     var titleEl = document.getElementById('dlg-title');
@@ -62,8 +74,10 @@
     var cancelBtn = document.getElementById('dlg-cancel');
     var cb = null;
 
+    // Diekspos secara global agar tombol apa pun bisa memicu konfirmasi sebelum navigasi
     window.showConfirmModal = function(href, action) {
       if (!href) return;
+      // Mapping action key ke judul/deskripsi yang human-readable
       var titles = {'delete-playlist':'Delete Playlist','delete-song':'Delete Song','delete-account':'Delete Account'};
       var descs  = {'delete-playlist':'This will permanently delete this playlist.','delete-song':'Permanently delete this song from the catalog.','delete-account':'Your account will be permanently removed.'};
       titleEl.textContent = titles[action] || 'Are you sure?';
@@ -75,7 +89,7 @@
     okBtn.addEventListener('click', function() {
       dlg.close();
       var fn = cb; cb = null;
-      if (fn) setTimeout(fn, 150);
+      if (fn) setTimeout(fn, 150); // Delay singkat agar dialog sempat tertutup dulu
     });
 
     cancelBtn.addEventListener('click', function() { dlg.close(); cb = null; });
@@ -83,7 +97,7 @@
     dlg.addEventListener('click', function(e) { if (e.target === dlg) dlg.close(); });
   }
 
-  /* ═══ Playlist Picker Dialog ═══ */
+  /* ═══ Dialog Pemilih Playlist ═══ */
   var pdlg = document.getElementById('pickerDlg');
   if (pdlg) {
     var listEl = document.getElementById('pickerList');
@@ -92,12 +106,14 @@
     var closeBtn = document.getElementById('picker-close');
     var pendingSongId = 0;
 
+    // Diekspos secara global agar tombol "Add to Playlist" bisa membuka picker
     window.showPlaylistPicker = function(songId) {
-      if (!songId || songId <= 0) return; // guard: must be valid song ID
+      if (!songId || songId <= 0) return; // guard: harus valid song ID
       pendingSongId = songId;
       listEl.innerHTML = '<div style="padding:40px 20px;text-align:center;color:#999;font-size:14px;">Loading...</div>';
       pdlg.showModal();
 
+      // Fetch playlist user via AJAX dan render daftar picker
       var x = new XMLHttpRequest();
       x.open('GET', BASE + 'playlist/get_playlists_json', true);
       x.onload = function() {
@@ -123,6 +139,7 @@
       listEl.innerHTML = h;
     }
 
+    // Klik playlist yang ada mengirim POST untuk menambahkan lagu yang tertunda
     listEl.addEventListener('click', function(e) {
       var b = e.target.closest('.pl-picker-item');
       if (!b) return;
@@ -136,6 +153,7 @@
       x.send('song_id=' + pendingSongId);
     });
 
+    // Tombol "Create": buat playlist baru via AJAX dan tambah lagu dalam satu panggilan
     createBtn.addEventListener('click', function() {
       var name = nameEl.value.trim();
       if (!name) { nameEl.focus(); return; }
@@ -153,6 +171,7 @@
     pdlg.addEventListener('click', function(e) { if (e.target === pdlg) pdlg.close(); });
   }
 
+  // Notifikasi toast sederhana, auto-hapus setelah 2.5 detik
   function toast(msg) {
     var el = document.createElement('div');
     el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#1a1a2e;color:#e0e0e0;border:1px solid #333;border-radius:8px;z-index:99999;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.5);';
@@ -161,6 +180,7 @@
     setTimeout(function(){el.remove();},2500);
   }
 
+  // Helper HTML-escape untuk konten yang dirender via JS
   function esc(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 })();
 </script>

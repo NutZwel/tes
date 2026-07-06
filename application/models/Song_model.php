@@ -1,14 +1,20 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Model Song — mengelola data lagu dari tabel `songs`.
+ *
+ * Menyediakan operasi baca untuk katalog publik (paginasi, pencarian)
+ * dan detail lagu tunggal. Semua query hanya menampilkan lagu aktif (is_active = 1).
+ */
 class Song_model extends CI_Model {
 
     /**
-     * Get paginated list of active songs with genre name.
+     * Ambil daftar lagu aktif dengan paginasi, lengkap dengan nama genre.
      *
-     * @param int $page      Current page number (1-based)
-     * @param int $per_page  Items per page
-     * @return array         Array of song objects
+     * @param int $page      Halaman saat ini (1-based)
+     * @param int $per_page  Jumlah item per halaman
+     * @return array         Array objek lagu
      */
     public function get_paginated($page = 1, $per_page = 24)
     {
@@ -33,7 +39,7 @@ class Song_model extends CI_Model {
     }
 
     /**
-     * Get total count of active songs (for pagination).
+     * Hitung total lagu aktif — digunakan untuk membangun paginasi.
      *
      * @return int
      */
@@ -44,7 +50,7 @@ class Song_model extends CI_Model {
     }
 
     /**
-     * Get a single song by ID with genre.
+     * Ambil satu lagu berdasarkan ID beserta informasi genre-nya.
      *
      * @param int $id
      * @return object|null
@@ -64,12 +70,17 @@ class Song_model extends CI_Model {
     }
 
     /**
-     * Search songs by title or artist.
+     * Cari lagu berdasarkan judul atau nama artis (LIKE).
+     * Hasil diurutkan berdasarkan lagu terbaru.
+     *
+     * @param string $query    Kata kunci pencarian
+     * @param int    $page     Halaman saat ini
+     * @param int    $per_page Jumlah per halaman
+     * @return array
      */
     public function search($query, $page = 1, $per_page = 24)
     {
         $offset = max(0, ($page - 1) * $per_page);
-        $like = '%' . $this->db->escape_like_str($query) . '%';
 
         $this->db->select('
             songs.id, songs.title, songs.artist,
@@ -79,6 +90,7 @@ class Song_model extends CI_Model {
         $this->db->from('songs');
         $this->db->join('genres', 'genres.id = songs.genre_id', 'left');
         $this->db->where('songs.is_active', 1);
+        // Grup OR agar pencarian cocok dengan judul ATAU artis
         $this->db->group_start();
         $this->db->like('songs.title', $query);
         $this->db->or_like('songs.artist', $query);
@@ -90,7 +102,10 @@ class Song_model extends CI_Model {
     }
 
     /**
-     * Count search results.
+     * Hitung jumlah hasil pencarian (tanpa paginasi).
+     *
+     * @param string $query
+     * @return int
      */
     public function count_search($query)
     {

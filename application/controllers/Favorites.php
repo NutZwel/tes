@@ -1,6 +1,12 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Favorites — mengelola lagu favorit pengguna.
+ *
+ * Menyediakan halaman daftar favorit dan endpoint AJAX
+ * untuk menambah lagu ke favorit.
+ */
 class Favorites extends CI_Controller {
 
     public function __construct()
@@ -11,7 +17,9 @@ class Favorites extends CI_Controller {
     }
 
     /**
-     * Show all favorited songs for the logged-in user.
+     * Tampilkan semua lagu favorit milik user yang sedang login.
+     *
+     * User harus login; jika belum, redirect ke halaman login.
      */
     public function index()
     {
@@ -28,7 +36,9 @@ class Favorites extends CI_Controller {
     }
 
     /**
-     * Add a song to favorites via AJAX.
+     * Tambah lagu ke favorit (via AJAX POST).
+     *
+     * Menerima song_id dari POST dan mengembalikan status JSON.
      */
     public function add()
     {

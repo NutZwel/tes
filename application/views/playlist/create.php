@@ -1,3 +1,10 @@
+<!-- ──────────────────────────────────────────────────────────────
+     View: playlist/create
+     Form untuk membuat playlist baru dengan nama, deskripsi,
+     dan toggle visibilitas publik/privat.
+     Menggunakan CI3 form_open() dan set_value() agar repopulasi
+     validation-aware. Hanya dapat diakses oleh user terdaftar.
+     ────────────────────────────────────────────────────────────── -->
 <section class="py-4" id="create-playlist">
   <div class="container">
     <header class="d-flex align-items-baseline gap-3 mb-4">
@@ -7,6 +14,9 @@
 
     <div class="card" style="max-width:520px;">
       <div class="card-body">
+        <!-- ─── Alert Error Validasi ───
+             Muncul saat CI3 Form Validation gagal.
+        ─── -->
         <?php if (validation_errors()): ?>
         <div class="alert alert-danger d-flex align-items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -23,6 +33,10 @@
             <label for="pl-desc" class="form-label">Description</label>
             <textarea name="description" id="pl-desc" class="form-control" maxlength="500" rows="3" placeholder="Describe your playlist..."><?= html_escape(set_value('description')) ?></textarea>
           </div>
+          <!-- ─── Toggle Publik/Privat ───
+               Jika dicentang (value="1"), playlist terlihat oleh
+               user lain; tidak dicentang berarti privat.
+          ─── -->
           <div class="d-flex justify-content-between align-items-center card p-3">
             <div>
               <span class="fw-semibold small">Public Playlist</span>

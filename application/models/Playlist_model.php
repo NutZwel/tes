@@ -1,10 +1,19 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Model Playlist — mengelola playlist dan relasi lagu di dalamnya.
+ *
+ * Mencakup CRUD playlist milik user tertentu, manajemen lagu
+ * dalam playlist (tambah/hapus), serta pencarian playlist publik.
+ */
 class Playlist_model extends CI_Model {
 
     /**
-     * Get all playlists for a user, with song count.
+     * Ambil semua playlist milik user, lengkap dengan jumlah lagu.
+     *
+     * Subquery COUNT dihitungan langsung agar tidak perlu
+     * looping terpisah untuk setiap playlist.
      *
      * @param int $userId
      * @return array
@@ -21,10 +30,13 @@ class Playlist_model extends CI_Model {
     }
 
     /**
-     * Get a single playlist with its songs.
+     * Ambil satu playlist beserta daftar lagu di dalamnya.
+     *
+     * Query dua tahap: ambil data playlist dulu (sekaligus cek kepemilikan),
+     * baru JOIN ke tabel playlist_songs.
      *
      * @param int $playlistId
-     * @param int $userId      For ownership check
+     * @param int $userId      Untuk verifikasi kepemilikan
      * @return object|null
      */
     public function get_with_songs($playlistId, $userId)
@@ -44,6 +56,7 @@ class Playlist_model extends CI_Model {
         $this->db->join('genres', 'genres.id = songs.genre_id', 'left');
         $this->db->where('playlist_songs.playlist_id', $playlistId);
         $this->db->where('songs.is_active', 1);
+        // Urutkan berdasarkan posisi yang disimpan user
         $this->db->order_by('playlist_songs.position', 'ASC');
         $playlist->songs = $this->db->get()->result();
 
@@ -51,17 +64,17 @@ class Playlist_model extends CI_Model {
     }
 
     /**
-     * Create a new playlist.
+     * Buat playlist baru untuk seorang user.
      *
      * @param int   $userId
      * @param array $data    Keys: title, description, is_public
-     * @return int           Inserted playlist ID
+     * @return int           ID playlist yang baru dibuat
      */
     public function create($userId, array $data)
     {
         $insert = [
             'user_id'     => $userId,
-            'name'        => $data['title'],   // maps to schema 'name' column
+            'name'        => $data['title'],   // maps ke kolom 'name' di skema
             'description' => $data['description'] ?? '',
             'is_public'   => !empty($data['is_public']) ? 1 : 0,
         ];
@@ -70,20 +83,23 @@ class Playlist_model extends CI_Model {
     }
 
     /**
-     * Add a song to a playlist.
+     * Tambah lagu ke dalam playlist.
+     *
+     * Jika lagu sudah ada, lewati (return true) agar tidak terjadi duplikasi.
      *
      * @param int $playlistId
      * @param int $songId
-     * @param int $position  Optional sort position
+     * @param int $position  Posisi urutan (opsional)
      * @return bool
      */
     public function add_song($playlistId, $songId, $position = 0)
     {
+        // Cegah duplikasi: cek apakah lagu sudah ada di playlist
         $exists = $this->db->where('playlist_id', $playlistId)
                            ->where('song_id', $songId)
                            ->get('playlist_songs')
                            ->row();
-        if ($exists) return true; // already added
+        if ($exists) return true; // sudah ada, tidak perlu diinsert lagi
 
         return $this->db->insert('playlist_songs', [
             'playlist_id' => $playlistId,
@@ -93,11 +109,11 @@ class Playlist_model extends CI_Model {
     }
 
     /**
-     * Remove a song from a playlist.
+     * Hapus lagu dari playlist.
      *
      * @param int $playlistId
      * @param int $songId
-     * @return bool
+     * @return bool  true jika ada baris yang terhapus
      */
     public function remove_song($playlistId, $songId)
     {
@@ -108,7 +124,7 @@ class Playlist_model extends CI_Model {
     }
 
     /**
-     * Count playlists for a user.
+     * Hitung jumlah playlist milik user.
      *
      * @param int $userId
      * @return int
@@ -119,7 +135,7 @@ class Playlist_model extends CI_Model {
     }
 
     /**
-     * Delete a playlist (user owns it).
+     * Hapus playlist (hanya jika user adalah pemiliknya).
      *
      * @param int $playlistId
      * @param int $userId
@@ -132,7 +148,10 @@ class Playlist_model extends CI_Model {
     }
 
     /**
-     * Search public playlists by name.
+     * Cari playlist publik berdasarkan nama (maks 10 hasil).
+     *
+     * @param string $query
+     * @return array
      */
     public function search_public($query)
     {

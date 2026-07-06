@@ -1,3 +1,10 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: playlist/index.php
+     Menampilkan daftar playlist milik user dalam grid card.
+     Setiap card menampilkan ikon playlist, nama, dan jumlah lagu.
+     Jika belum ada playlist, tampilkan empty state dengan tombol
+     "Create Playlist". Menerima $playlists dari controller.
+     ──────────────────────────────────────────────── -->
 <style>
   .transition-card { transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
   .transition-card:hover { background-color: rgba(var(--bs-secondary-rgb),0.08); border-color: var(--bs-primary); box-shadow: 0 0 0 1px rgba(var(--bs-primary-rgb),0.3); }
@@ -31,6 +38,7 @@
       <?php endforeach; ?>
     </div>
     <?php else: ?>
+    <!-- Empty state — belum ada playlist -->
     <div class="text-center py-5">
       <div class="mb-3">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="text-body-tertiary"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>

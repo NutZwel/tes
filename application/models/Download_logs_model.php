@@ -1,13 +1,21 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Model Download_Logs — mencatat dan memeriksa aktivitas download.
+ *
+ * Digunakan untuk membatasi download guest (1x/hari per IP)
+ * dan melacak riwayat download user terdaftar.
+ */
 class Download_logs_model extends CI_Model {
 
     /**
-     * Count guest downloads by IP for a specific date.
+     * Hitung jumlah download guest berdasarkan IP dan tanggal tertentu.
      *
-     * @param string $ip      Visitor IP address
-     * @param string $date    Date string (Y-m-d)
+     * Hanya menghitung log yang tidak memiliki user_id (guest).
+     *
+     * @param string $ip      Alamat IP pengunjung
+     * @param string $date    Tanggal dalam format Y-m-d
      * @return int
      */
     public function count_by_ip_date($ip, $date)
@@ -19,12 +27,15 @@ class Download_logs_model extends CI_Model {
     }
 
     /**
-     * Log a download attempt.
+     * Catat aktivitas download ke database.
+     *
+     * Untuk guest (user_id = null), IP address dicatat sebagai identitas.
+     * Untuk user terdaftar, IP boleh dikosongkan.
      *
      * @param int|null    $userId
      * @param string      $ip
      * @param int         $songId
-     * @return int        Inserted log ID
+     * @return int        ID log yang baru dibuat
      */
     public function log_download($userId, $ip, $songId)
     {
@@ -38,7 +49,7 @@ class Download_logs_model extends CI_Model {
     }
 
     /**
-     * Get download count for a registered user today.
+     * Hitung jumlah download user terdaftar pada hari ini.
      *
      * @param int $userId
      * @return int

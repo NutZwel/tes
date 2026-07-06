@@ -1,10 +1,21 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?>
+<!-- ──────────────────────────────────────────────────────────────
+     View: dashboard/registered_full
+     Dashboard lengkap untuk user terdaftar — menampilkan hero
+     banner, carousel continue-listening, rekomendasi, preview
+     katalog, grid playlist user, daftar lagu favorit, dan
+     section trending. Hanya muncul setelah autentikasi;
+     bergantung pada $dashboard_user, $recent_listens,
+     $recommendations, $reg_preview_songs, $playlists,
+     $favorites, dan $trending dari controller.
+     ────────────────────────────────────────────────────────────── -->
 
-<!-- ═══════════════════════════════
-     ── Registered Hero ──
-     ═══════════════════════════════ -->
+<!-- ─── Hero Banner ───
+     Menyapa user dengan display name (fallback ke username)
+     dan menyediakan link cepat ke Browse Catalog dan My Playlists.
+─── -->
 <section class="py-5" id="rhero">
   <div class="container">
     <div class="row align-items-center gx-4 gy-3">
@@ -27,9 +38,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   </div>
 </section>
 
-<!-- ═══════════════════════════════
-     ── Continue Listening ──
-     ═══════════════════════════════ -->
+<!-- ─── Continue Listening Carousel ───
+     Menampilkan lagu yang baru didengarkan dalam carousel
+     horizontal. Setiap kartu menampilkan cover (atau inisial
+     fallback), overlay durasi, dan dropdown untuk aksi
+     queue/playlist/favorite. Hanya dirender ketika
+     $recent_listens tidak kosong.
+─── -->
 <?php if (!empty($recent_listens)): ?>
 <section class="pb-4 pt-2" id="continue-listening">
   <div class="container">
@@ -81,9 +96,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </section>
 <?php endif; ?>
 
-<!-- ═══════════════════════════════
-     ── Made For You / Recommendations ──
-     ═══════════════════════════════ -->
+<!-- ─── Made For You / Rekomendasi ───
+     Saran lagu berbasis genre favorit user, ditampilkan
+     sebagai carousel scrollable. Setiap kartu menampilkan
+     badge genre, cover, dan dropdown aksi. Hanya muncul
+     jika $recommendations memiliki data.
+─── -->
 <?php if (!empty($recommendations)): ?>
 <section class="py-4" id="for-you">
   <div class="container">
@@ -134,9 +152,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </section>
 <?php endif; ?>
 
-<!-- ═══════════════════════════════
-     ── Discover More (Catalog Preview) ──
-     ═══════════════════════════════ -->
+<!-- ─── Discover More (Preview Katalog) ───
+     Grid card lagu dengan navigasi panah. Setiap kartu
+     menampilkan play-overlay saat hover, durasi, dan menu
+     tiga titik. Fallback ke CTA empty-state ketika tidak
+     ada preview song.
+─── -->
 <section class="py-4" id="preview">
   <div class="container">
     <header class="d-flex align-items-baseline gap-3 mb-4">
@@ -218,9 +239,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   </div>
 </section>
 
-<!-- ═══════════════════════════════
-     ── Your Playlists ──
-     ═══════════════════════════════ -->
+<!-- ─── Grid Playlist User ───
+     Menampilkan playlist user dalam grid responsif.
+     Setiap kartu menampilkan cover (atau placeholder ikon
+     musik), nama playlist, jumlah lagu, dan tombol aksi
+     edit/delete. Sembunyikan saat $playlists kosong,
+     menampilkan pesan empty-state.
+─── -->
 <section class="py-4" id="playlists">
   <div class="container">
     <header class="d-flex align-items-baseline gap-3 mb-4">
@@ -268,9 +293,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   </div>
 </section>
 
-<!-- ═══════════════════════════════
-     ── Favorite Songs ──
-     ═══════════════════════════════ -->
+<!-- ─── Daftar Lagu Favorit ───
+     Daftar flat dari track favorit dengan thumbnail cover,
+     judul, artis, durasi, dan menu aksi. Menampilkan prompt
+     empty-state ketika user belum memiliki favorit.
+─── -->
 <section class="py-4" id="favorites">
   <div class="container">
     <header class="d-flex align-items-baseline gap-3 mb-4">
@@ -307,9 +334,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   </div>
 </section>
 
-<!-- ═══════════════════════════════
-     ── Trending ──
-     ═══════════════════════════════ -->
+<!-- ─── Trending Now ───
+     Carousel scrollable dari lagu populer berdasarkan jumlah
+     pemutaran. Setiap kartu menyertakan badge play count.
+     Hanya dirender saat $trending tidak kosong.
+─── -->
 <?php if (!empty($trending)): ?>
 <section class="py-4" id="trending">
   <div class="container">

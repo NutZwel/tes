@@ -1,3 +1,14 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: auth/login.php
+     Halaman form login. Menampilkan card terpusat dengan:
+       - Ikon header, judul "Welcome back", subtitle
+       - Alert error dari server (hasil login gagal)
+       - Alert error validasi
+       - Field username/email dan password
+       - Tombol submit dengan loading state
+       - Link footnote ke halaman registrasi
+     ──────────────────────────────────────────────── -->
+
 <section class="page page--auth">
   <div class="page__inner">
     <div class="auth-card">
@@ -9,6 +20,7 @@
         <p class="auth-card__sub">Sign in to continue listening</p>
       </div>
 
+      <!-- Banner error server-side (misal "Invalid credentials") muncul hanya jika di-set oleh controller -->
       <?php if (!empty($error)): ?>
         <div class="alert alert--error" role="alert">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -16,6 +28,7 @@
         </div>
       <?php endif; ?>
 
+      <!-- Banner error validasi CI3 -->
       <?php if (validation_errors()): ?>
         <div class="alert alert--error" role="alert">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>

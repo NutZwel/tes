@@ -1,6 +1,14 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller User — profil dan preferensi pengguna.
+ *
+ * Mencakup manajemen profil (username, display name, bio, avatar),
+ * perubahan password, preferensi tema/warna, ekspor data,
+ * serta logout dari semua perangkat.
+ * Semua method (kecuali helper) memerlukan autentikasi.
+ */
 class User extends CI_Controller {
 
     public function __construct()
@@ -14,7 +22,7 @@ class User extends CI_Controller {
     }
 
     /**
-     * Profile page — redirect to login if not authenticated.
+     * Halaman profil — redirect ke login jika belum autentikasi.
      */
     public function index()
     {
@@ -35,7 +43,7 @@ class User extends CI_Controller {
         $data['title'] = 'Profile — Laufey';
         $data['main_view'] = 'user/profile';
 
-        // Ensure theme info is in session
+        // Pastikan info tema ada di session untuk layout
         $this->session->set_userdata([
             'theme_style'   => $prefs->theme ?? 'dark',
             'theme_color'   => $prefs->theme_color ?? 'blue',
@@ -46,7 +54,7 @@ class User extends CI_Controller {
     }
 
     /**
-     * Update profile fields (username, display_name, email, bio, avatar).
+     * Update profil: username, display_name, email, bio, avatar.
      */
     public function update_profile()
     {
@@ -69,7 +77,7 @@ class User extends CI_Controller {
             'bio'          => $this->input->post('bio', TRUE) ?: NULL,
         ];
 
-        // Avatar upload
+        // Upload avatar jika ada file baru
         if (!empty($_FILES['avatar']['name'])) {
             $avatarPath = $this->upload_avatar($userId);
             if ($avatarPath) {
@@ -77,7 +85,7 @@ class User extends CI_Controller {
             }
         }
 
-        // Remove avatar
+        // Hapus avatar jika diminta
         if ($this->input->post('remove_avatar')) {
             $update['avatar_path'] = NULL;
         }
@@ -92,7 +100,7 @@ class User extends CI_Controller {
     }
 
     /**
-     * Change password.
+     * Ganti password — memerlukan password lama yang benar.
      */
     public function change_password()
     {
@@ -108,6 +116,7 @@ class User extends CI_Controller {
         }
 
         $user = $this->User_model->get_by_id($userId);
+        // Verifikasi password lama sebelum mengizinkan perubahan
         if (!password_verify($this->input->post('current_password'), $user->password_hash)) {
             $this->session->set_flashdata('password_error', 'Current password is incorrect.');
             redirect('user');
@@ -122,7 +131,11 @@ class User extends CI_Controller {
     }
 
     /**
-     * Update user preferences via AJAX (instant theme/accent changes).
+     * Simpan preferensi user secara instan via AJAX.
+     *
+     * Mendukung field: theme, theme_color, theme_bg_css, autoplay,
+     * show_activity, email_notifs, language.
+     * Theme info langsung disinkronkan ke session untuk layout.
      */
     public function save_pref_ajax()
     {
@@ -131,13 +144,14 @@ class User extends CI_Controller {
         $field = $this->input->post('field', TRUE);
         $value = $this->input->post('value', TRUE);
 
+        // Whitelist field yang diizinkan untuk mencegah injeksi
         $allowedFields = ['theme', 'theme_color', 'theme_bg_css', 'autoplay', 'show_activity', 'email_notifs', 'language'];
         if (!in_array($field, $allowedFields)) {
             $this->output->set_status_header(400)->set_output(json_encode(['error' => 'Invalid field']));
             return;
         }
 
-        // Ensure user_prefs row exists
+        // Pastikan row user_prefs sudah ada
         $exists = $this->db->where('user_id', $userId)->get('user_prefs')->row();
         if (!$exists) {
             $this->db->insert('user_prefs', ['user_id' => $userId]);
@@ -145,7 +159,7 @@ class User extends CI_Controller {
 
         $this->db->where('user_id', $userId)->update('user_prefs', [$field => $value]);
 
-        // Sync theme info to session for layout
+        // Sinkronkan info tema ke session agar layout langsung berubah
         if (in_array($field, ['theme', 'theme_color', 'theme_bg_css'])) {
             if ($field === 'theme_bg_css') {
                 $this->session->set_userdata('theme_bg_css', $value);
@@ -158,7 +172,7 @@ class User extends CI_Controller {
     }
 
     /**
-     * Update user preferences.
+     * Update preferensi user (form submit biasa).
      */
     public function update_preferences()
     {
@@ -173,7 +187,7 @@ class User extends CI_Controller {
             'language'      => $this->input->post('language', TRUE) ?: 'en',
         ];
 
-        // Background CSS (gradient/pattern presets or custom)
+        // Background CSS — prioritas: custom > preset > null
         $bgCss = $this->input->post('theme_bg_css', TRUE);
         $customCss = $this->input->post('custom_bg_css', TRUE);
         if (!empty($customCss)) {
@@ -186,7 +200,7 @@ class User extends CI_Controller {
 
         $this->db->where('user_id', $userId)->update('user_prefs', $prefs);
 
-        // Store theme info in session for layout
+        // Simpan di session untuk layout
         $this->session->set_userdata([
             'theme_style'   => $prefs['theme'],
             'theme_color'   => $prefs['theme_color'],
@@ -198,7 +212,10 @@ class User extends CI_Controller {
     }
 
     /**
-     * Export user data as JSON download.
+     * Ekspor data user sebagai file JSON (download).
+     *
+     * Mencakup profil, favorit, playlist, dan riwayat pemutaran.
+     * Password_hash dihapus dari output.
      */
     public function export_data()
     {
@@ -210,6 +227,7 @@ class User extends CI_Controller {
             'playlists'  => $this->Playlist_model->get_by_user($userId),
             'listens'    => $this->Listen_history_model->get_by_user($userId, 500),
         ];
+        // Jangan ekspos hash password
         unset($export['profile']->password_hash);
 
         $this->output
@@ -219,21 +237,28 @@ class User extends CI_Controller {
     }
 
     /**
-     * Sign out all other sessions.
+     * Logout dari semua perangkat — regenerasi session ID.
+     *
+     * CI3 regenerasi session akan membatalkan semua session
+     * lain yang menggunakan session ID lama.
      */
     public function logout_all()
     {
         $userId = $this->require_auth();
-        // CI3 session driver — regenerate invalidates old sessions
         $this->session->sess_regenerate(TRUE);
         $this->session->set_flashdata('profile_success', TRUE);
         redirect('user');
     }
 
     /* ──────────────────────────────────────────
-       Helpers
+       Helper
        ────────────────────────────────────────── */
 
+    /**
+     * Pastikan user sudah login. Redirect ke login jika belum.
+     *
+     * @return int User ID
+     */
     private function require_auth(): int
     {
         $userId = (int) $this->session->userdata('user_id');
@@ -244,6 +269,12 @@ class User extends CI_Controller {
         return $userId;
     }
 
+    /**
+     * Ambil preferensi user, buat baris default jika belum ada.
+     *
+     * @param int $userId
+     * @return object
+     */
     private function get_prefs(int $userId): object
     {
         $prefs = $this->db->where('user_id', $userId)->get('user_prefs')->row();
@@ -254,6 +285,12 @@ class User extends CI_Controller {
         return $prefs;
     }
 
+    /**
+     * Upload foto avatar user.
+     *
+     * @param int $userId
+     * @return string|null Path relatif file avatar, atau null jika gagal
+     */
     private function upload_avatar(int $userId): ?string
     {
         $config = [
@@ -276,7 +313,10 @@ class User extends CI_Controller {
     }
 
     /**
-     * Custom form validation: username must be unique (excluding current user).
+     * Callback validasi: pastikan username unik (kecuali milik user sendiri).
+     *
+     * @param string $username
+     * @return bool
      */
     public function valid_username(string $username): bool
     {

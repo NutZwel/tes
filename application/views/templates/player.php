@@ -1,7 +1,22 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: templates/player.php
+     Player bar audio HTML5 persisten yang menempel di
+     bagian bawah setiap halaman.
+
+     Player bar utama: informasi lagu (cover, judul, artis),
+     kontrol prev/play-pause/next, progress bar seek,
+     slider volume, toggle lirik, toggle loop mode,
+     dan menu untuk queue/playlist/favorite/reset.
+
+     Panel lirik: modal full-screen yang menampilkan cover art,
+     kontrol transport, progress bar di kiri, dan teks lirik
+     yang bisa di-scroll di kanan.
+     ──────────────────────────────────────────────── -->
+
 <div class="player" id="player" role="region" aria-label="Music player">
   <div class="player__inner">
 
-    <!-- Song Info -->
+    <!-- ─── Info Lagu ─── -->
     <a href="#" class="player__info-link" id="player-info-link">
       <div class="player__art">
         <div class="player__art-placeholder" id="player-art">
@@ -15,7 +30,7 @@
       </div>
     </a>
 
-    <!-- Controls -->
+    <!-- ─── Kontrol Transport ─── -->
     <div class="player__controls">
       <button class="player__btn player__btn--prev" id="player-prev" title="Previous">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/></svg>
@@ -28,7 +43,7 @@
       </button>
     </div>
 
-    <!-- Progress -->
+    <!-- ─── Progress Bar ─── -->
     <div class="player__progress">
       <span class="player__time" id="player-time-current">0:00</span>
       <div class="player__bar" id="player-bar">
@@ -39,7 +54,7 @@
       <span class="player__time" id="player-time-total">0:00</span>
     </div>
 
-    <!-- Volume + Menu -->
+    <!-- ─── Volume + Menu ─── -->
     <div class="player__extras">
       <button class="player__btn player__btn--volume" id="player-volume" title="Volume">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" id="player-vol-icon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -57,6 +72,7 @@
         </svg>
       </button>
 
+      <!-- Loop mode bersiklus: sequential -> repeat-one -> shuffle -> sequential -->
       <button class="player__btn player__btn--loop" id="player-loop-btn" title="Sequential">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" id="player-loop-icon"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
       </button>
@@ -65,6 +81,7 @@
         <button class="player__btn player__btn--menu" id="player-menu-btn" title="More">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
         </button>
+        <!-- Menu drop-up dengan daftar queue, add-queue, playlist, favorite, reset -->
         <div class="player__menu" id="player-menu" role="menu" style="display:none">
           <div class="player__menu-section">
             <span class="player__menu-section-title">Up Next</span>
@@ -97,11 +114,11 @@
   </div>
 </div>
 
-<!-- ═══ Lyrics Panel (full-screen overlay) ═══ -->
+<!-- ═══ Panel Lirik (overlay full-screen) ═══ -->
 <div class="player__lyrics-panel" id="player-lyrics-panel" style="display:none">
   <div class="player__lyrics-backdrop" id="player-lyrics-close-bg"></div>
   <div class="player__lyrics-container">
-    <!-- Left: Cover + Controls -->
+    <!-- Kiri: Cover + Kontrol -->
     <div class="player__lyrics-left">
       <div class="player__lyrics-art">
         <div class="player__lyrics-art-img" id="lyrics-art-placeholder" style="display:none;">
@@ -122,7 +139,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/></svg>
         </button>
       </div>
-      <!-- Lyrics progress bar -->
+      <!-- Progress bar lirik -->
       <div class="player__lyrics-progress">
         <span class="player__lyrics-time" id="lyrics-time-current">0:00</span>
         <div class="player__lyrics-bar" id="lyrics-bar">
@@ -134,7 +151,7 @@
       </div>
     </div>
 
-    <!-- Right: Scrollable lyrics -->
+    <!-- Kanan: Teks lirik yang bisa di-scroll -->
     <div class="player__lyrics-right">
       <button class="player__lyrics-close" id="player-lyrics-close" title="Close">&times;</button>
       <div class="player__lyrics-content" id="lyrics-content">
@@ -144,4 +161,5 @@
   </div>
 </div>
 
+<!-- Elemen <audio> tersembunyi yang dikendalikan oleh player.js -->
 <audio id="player-audio" preload="auto" style="display:none"></audio>

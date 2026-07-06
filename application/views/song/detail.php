@@ -1,11 +1,21 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: song/detail.php
+     Halaman detail lengkap untuk satu lagu.
+     Kolom kiri menampilkan cover art (atau inisial fallback)
+     dan deskripsi "About This Song". Kolom kanan menampilkan
+     judul, artis, badge genre/durasi, tombol aksi (play, queue,
+     download, menu lainnya), bio artis, dan daftar lagu serupa.
+     ──────────────────────────────────────────────── -->
+
 <section class="py-5" id="song-detail" data-bs-theme="dark">
   <div class="container">
     <div class="row g-4">
 
-      <!-- ═══ LEFT COLUMN: Cover + About ═══ -->
+      <!-- ═══ KOLOM KIRI: Cover + About ═══ -->
       <div class="col-lg-5">
 
         <?php if ($song->cover_path && cover_available($song->cover_path)): ?>
+          <!-- Cover image yang bisa diklik untuk memulai pemutaran -->
           <div data-play-now="<?= $song->id ?>" style="cursor:pointer;">
             <img src="<?= cover_url($song->cover_path) ?>"
                  alt="<?= html_escape($song->title) ?>"
@@ -15,6 +25,7 @@
                  style="aspect-ratio:1;object-fit:cover;pointer-events:none;">
           </div>
         <?php else: ?>
+          <!-- Placeholder fallback ketika tidak ada cover: huruf pertama judul -->
           <div class="d-flex align-items-center justify-content-center bg-body-tertiary rounded-3"
                style="aspect-ratio:1;max-width:100%;cursor:pointer;" data-play-now="<?= $song->id ?>">
             <span class="display-1 fw-bold text-body-secondary" style="pointer-events:none;">
@@ -34,7 +45,7 @@
 
       </div>
 
-      <!-- ═══ RIGHT COLUMN: Info + Actions + Details ═══ -->
+      <!-- ═══ KOLOM KANAN: Info + Aksi + Detail ═══ -->
       <div class="col-lg-7">
 
         <h1 class="fw-light mb-1" style="font-family: var(--font-display);"><?= html_escape($song->title) ?></h1>
@@ -47,6 +58,7 @@
             </span>
           <?php endif; ?>
           <?php if ($song->duration_seconds): ?>
+            <!-- Format durasi mm:ss dari nilai seconds -->
             <span class="badge bg-primary bg-opacity-10 text-primary">
               <?= gmdate('i:s', $song->duration_seconds) ?>
             </span>
@@ -56,10 +68,12 @@
         <div class="d-flex gap-2 align-items-center mb-4">
           <button class="btn btn-primary rounded-pill" data-play-now="<?= $song->id ?>">Play Now</button>
           <button class="btn btn-outline-light rounded-pill" data-queue-now="<?= $song->id ?>">Add to Queue</button>
+          <!-- Link download langsung — controller menangani batas guest -->
           <a href="<?= base_url('download/' . $song->id) ?>" class="btn btn-outline-light rounded-pill d-inline-flex align-items-center gap-1">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download
           </a>
+          <!-- Overflow menu untuk aksi tambahan -->
           <div class="dropdown">
             <button class="btn btn-outline-light rounded-pill" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" aria-label="More options">
@@ -90,6 +104,7 @@
           <div class="mt-4">
             <h2 class="h5 fw-semibold mb-3" style="font-family:var(--font-display)">Similar Songs</h2>
             <div class="list-group list-group-flush">
+              <!-- Lagu serupa (genre sama, mengecualikan lagu saat ini), masing-masing mengarah ke halaman detail sendiri -->
               <?php foreach ($similar as $s): ?>
               <a href="<?= base_url('song/' . $s->id) ?>"
                  class="list-group-item bg-transparent text-light border-secondary d-flex align-items-center gap-3"
@@ -101,6 +116,7 @@
                          class="rounded-2" loading="lazy" width="48" height="48"
                          style="object-fit:cover;">
                   <?php else: ?>
+                    <!-- Inisial fallback untuk lagu serupa tanpa cover -->
                     <div class="d-flex align-items-center justify-content-center bg-body-tertiary rounded-2"
                          style="width:48px;height:48px;">
                       <span class="fw-bold text-body-secondary">

@@ -1,6 +1,13 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?>
+<!-- ──────────────────────────────────────────────────────────────
+     View: dashboard/main
+     Halaman utama untuk guest (belum login).
+     Menampilkan hero section, preview katalog, dan perbandingan
+     fitur guest vs registered user untuk mendorong registrasi.
+     ────────────────────────────────────────────────────────────── -->
+
 <!-- ─── Hero ─── -->
 <section class="overflow-hidden" id="hero">
   <div class="container">
@@ -55,6 +62,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </header>
 
     <?php if (!empty($preview_songs)): ?>
+    <!-- Carousel preview dengan tombol prev/next dan scroll horizontal -->
     <div class="carousel position-relative" role="region" aria-label="Catalog preview">
       <!-- Prev -->
       <button class="carousel__arrow carousel__arrow--prev btn btn-outline-secondary rounded-circle border-0 position-absolute top-50 start-0 translate-middle-y z-3 d-flex align-items-center justify-content-center"
@@ -77,6 +85,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         </svg>
       </button>
 
+      <!-- Track card yang bisa di-scroll, masing-masing menampilkan cover dan info lagu -->
       <div class="carousel__wrap position-relative"
            style="padding:0 var(--space-xl,2.5rem);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;">
         <style>.carousel__wrap::-webkit-scrollbar{display:none}</style>
@@ -107,7 +116,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <span class="carousel__initial display-3 fw-light text-secondary"><?= $initial ?></span>
                   </div>
                 <?php endif; ?>
-                <!-- Play button overlay -->
+                <!-- Tombol play yang muncul saat hover -->
                 <div class="carousel__play position-absolute z-3 d-flex align-items-center justify-content-center rounded-circle bg-primary"
                      style="bottom:var(--space-md,1rem);left:var(--space-md,1rem);width:40px;height:40px;opacity:0;transform:translateY(8px);box-shadow:0 4px 12px rgba(0,0,0,0.4);transition:opacity 0.2s,transform 0.2s,background 0.12s">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -140,7 +149,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
   </div>
 </section>
 
-<!-- ─── Guest vs Registered Comparison ─── -->
+<!-- ─── Perbandingan Guest vs Registered ─── -->
 <section class="py-5" id="comparison">
   <div class="container">
     <header class="mb-5">
@@ -154,7 +163,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </header>
 
     <div class="row g-4">
-      <!-- Guest card -->
+      <!-- Kartu Guest -->
       <div class="col-md-6 d-flex">
         <article class="card flex-fill border-secondary overflow-hidden"
                  style="background:var(--color-paper-2)">
@@ -175,6 +184,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             <p class="card-text small mb-3" style="color:var(--color-muted)">
               No account needed — try before you commit
             </p>
+            <!-- Daftar fitur guest (terbatas) -->
             <ul class="list-unstyled d-flex flex-column gap-2 mb-3 flex-fill">
               <li class="small d-flex align-items-start gap-1">
                 <span class="flex-shrink-0" style="width:1.4em;text-align:center;color:var(--color-neutral)">○</span>
@@ -197,7 +207,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         </article>
       </div>
 
-      <!-- Registered card (premium) -->
+      <!-- Kartu Registered (premium) -->
       <div class="col-md-6 d-flex">
         <article class="card flex-fill border-primary position-relative overflow-hidden"
                  style="background:linear-gradient(160deg,var(--color-paper-2) 0%,color-mix(in oklch,oklch(62% 0.20 255) 6%,var(--color-paper-2)) 40%,color-mix(in oklch,oklch(62% 0.20 255) 3%,var(--color-paper-2)) 100%);box-shadow:0 0 40px oklch(62% 0.20 255/0.08),inset 0 1px 0 oklch(62% 0.20 255/0.15)">
@@ -220,6 +230,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             <p class="card-text small mb-3" style="color:var(--color-muted)">
               Free account — unlimited access, zero ads
             </p>
+            <!-- Daftar fitur registered (tanpa batas) -->
             <ul class="list-unstyled d-flex flex-column gap-2 mb-3 flex-fill">
               <li class="small d-flex align-items-start gap-1">
                 <span class="flex-shrink-0 text-primary fw-bold" style="width:1.4em;text-align:center">✓</span>

@@ -1,3 +1,9 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: welcome_message.php
+     Halaman welcome default CodeIgniter 3.
+     Ini adalah view default CI3 yang ditampilkan saat
+     aplikasi pertama diakses melalui rute /
+     ──────────────────────────────────────────────── -->
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?><!DOCTYPE html>

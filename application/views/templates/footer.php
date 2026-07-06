@@ -1,3 +1,16 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: templates/footer.php
+     Footer situs dengan branding, link navigasi
+     (Browse, Account, Info columns), copyright,
+     social icons, dan JavaScript inline untuk:
+       - Scroll-based navbar styling
+       - Carousel arrow navigation
+       - Mobile nav overlay toggle
+       - Auth form loading state
+     Dirender di bagian bawah setiap full page load
+     (bukan di dalam PJAX fragments).
+     ──────────────────────────────────────────────── -->
+
 <footer class="footer" id="footer">
   <div class="footer__inner">
     <div class="footer__grid">
@@ -49,6 +62,7 @@
 </footer>
 
 <?php
+// Nilai default $isLoggedIn ke false jika tidak dikirim (misal di-load di luar layout)
 $isLoggedIn = isset($isLoggedIn) ? $isLoggedIn : false;
 ?>
 <script>
@@ -63,6 +77,8 @@ $isLoggedIn = isset($isLoggedIn) ? $isLoggedIn : false;
   }
 
   // ── Carousel arrows ──
+  // Menggerakkan scroll horizontal carousel dengan mentranslasi track
+  // relatif terhadap container yang terlihat; menyembunyikan arrows di batas.
   (function() {
     var track = document.querySelector('.carousel__track');
     var wrap = track ? track.parentNode : null;
@@ -106,6 +122,7 @@ $isLoggedIn = isset($isLoggedIn) ? $isLoggedIn : false;
     measure();
     updateArrows();
     window.addEventListener('resize', function() {
+      // Ukur ulang saat resize untuk menjaga pos dalam batas maksimal
       measure();
       track.style.transform = 'translateX(-' + Math.min(pos, maxPos()) + 'px)';
       updateArrows();
@@ -113,6 +130,9 @@ $isLoggedIn = isset($isLoggedIn) ? $isLoggedIn : false;
   })();
   // ── End carousel arrows ──
 
+  // ── Mobile nav overlay ──
+  // Di layar kecil, klik hamburger toggle menampilkan overlay panel
+  // dengan link navigasi; mengklik link akan menutup overlay.
   var toggle = document.querySelector('.nav__toggle');
   if (toggle) {
     var overlay = document.createElement('div');
@@ -149,6 +169,8 @@ $isLoggedIn = isset($isLoggedIn) ? $isLoggedIn : false;
   }
 })();
   // ── Auth form loading state ──
+  // Menambahkan class "is-loading" saat submit agar tombol menunjukkan spinner
+  // / disabled state selama request berlangsung.
   (function() {
     var forms = document.querySelectorAll('.auth-form');
     forms.forEach(function(form) {

@@ -1,8 +1,18 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Dashboard — halaman utama aplikasi.
+ *
+ * Menampilkan konten berbeda untuk guest (halaman statis)
+ * dan user terdaftar (rekomendasi, trending, continue listening, dll).
+ * Juga menyediakan endpoint AJAX untuk refresh Continue Listening.
+ */
 class Dashboard extends CI_Controller {
 
+    /**
+     * Halaman utama — pilih tampilan berdasarkan status login.
+     */
     public function index()
     {
         $this->load->model('Song_model');
@@ -16,7 +26,7 @@ class Dashboard extends CI_Controller {
             $this->load->model('Playlist_model');
             $this->load->model('Favorites_model');
 
-            // Filter: ensure all songs actually exist and are active
+            // Filter: pastikan semua lagu benar-benar exist dan aktif
             $recentRaw = $this->Listen_history_model->get_recent($userId, 20);
             $recentClean = [];
             foreach ($recentRaw as $s) {
@@ -32,7 +42,7 @@ class Dashboard extends CI_Controller {
             $this->load->model('User_model');
             $data['dashboard_user']  = $this->User_model->get_by_id($userId);
 
-            // Fresh catalog preview for registered view too
+            // Preview fresh untuk registered view juga
             $data['reg_preview_songs'] = $this->Song_model->get_paginated(1, 8);
 
             $data['main_view'] = 'dashboard/registered_full';
@@ -45,7 +55,10 @@ class Dashboard extends CI_Controller {
     }
 
     /**
-     * Return Continue Listening cards HTML (for JS auto-refresh).
+     * Return HTML kartu Continue Listening (untuk auto-refresh JS).
+     *
+     * Memindahkan lagu yang sedang diputar ke posisi pertama.
+     * Menerima parameter current_id untuk identifikasi lagu aktif.
      */
     public function continue_listening()
     {
@@ -64,12 +77,12 @@ class Dashboard extends CI_Controller {
             }
         }
 
-        // Move or add currently playing song to the front
+        // Pindahkan atau tambahkan lagu yang sedang diputar ke posisi depan
         if ($currentSongId > 0) {
             $moved = false;
             foreach ($recentClean as $i => $s) {
                 if ((int) $s->id === $currentSongId) {
-                    // Found in list — move to front
+                    // Lagu ada di daftar — pindahkan ke depan
                     $item = array_splice($recentClean, $i, 1);
                     array_unshift($recentClean, $item[0]);
                     $moved = true;
@@ -77,7 +90,7 @@ class Dashboard extends CI_Controller {
                 }
             }
             if (!$moved) {
-                // Not in list — fetch from DB and prepend
+                // Lagu tidak ada di daftar — ambil dari DB lalu tambahkan di depan
                 $currentSong = $this->Song_model->get_by_id($currentSongId);
                 if ($currentSong && $currentSong->is_active && $currentSong->file_path) {
                     array_unshift($recentClean, $currentSong);
@@ -85,7 +98,7 @@ class Dashboard extends CI_Controller {
             }
         }
 
-        // Ensure max 6 items
+        // Pastikan maksimal 6 item
         $recentClean = array_slice($recentClean, 0, 6);
 
         if (empty($recentClean)) { return; }

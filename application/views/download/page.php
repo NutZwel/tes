@@ -1,3 +1,12 @@
+<!-- ──────────────────────────────────────────────────────────────
+     VIEW: download/page
+     Halaman katalog download. User bisa mencari lagu dan
+     mendownloadnya. Menampilkan search bar, grid card lagu
+     dengan tombol download, dan kontrol paginasi.
+     Bergantung pada $songs, $search_query, $current_page,
+     dan $total_pages dari controller.
+     ────────────────────────────────────────────────────────────── -->
+
 <style>
   .dl-card { transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out); }
   .dl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px -8px oklch(0% 0 0 / 0.4); }
@@ -7,6 +16,10 @@
 
 <section class="py-5">
   <div class="container">
+    <!-- ─── Header & Search ───
+         Form search mengirim GET ke halaman yang sama dengan ?q=.
+         Query pencarian dipertahankan di link paginasi.
+    ─── -->
     <header class="mb-5 text-center">
       <h1 class="fw-light mb-2" style="font-family:var(--font-display);font-size:var(--text-2xl);color:var(--color-ink);">Download</h1>
       <p class="mb-4" style="color:var(--color-muted);font-size:var(--text-sm);">Get your favorite tracks — free and unlimited for registered users.</p>
@@ -20,11 +33,19 @@
     </header>
 
     <?php if (empty($songs)): ?>
+      <!-- Empty state — bedakan "tidak ada hasil pencarian" vs "katalog kosong" -->
       <div class="text-center py-5">
         <p style="color:var(--color-muted);"><?= !empty($search_query) ? 'No songs found for "' . html_escape($search_query) . '"' : 'No songs available.' ?></p>
-        <a href="<?= base_url('download/page') ?>" class="btn btn-outline-light rounded-pill">Browse All</a>
+        <?php if (!empty($search_query)): ?>
+          <a href="<?= base_url('download/page') ?>" class="btn btn-outline-light rounded-pill">Browse All</a>
+        <?php endif; ?>
       </div>
     <?php else: ?>
+      <!-- ─── Grid Card Lagu ───
+           Setiap card menampilkan cover/placeholder, judul, artis,
+           genre, dan link download yang melalui controller (tidak
+           pernah mengekspos path file sebenarnya).
+      ─── -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
         <?php foreach ($songs as $song): $cover = $song->cover_path && cover_available($song->cover_path) ? cover_url($song->cover_path) : null; ?>
         <div class="dl-card" style="background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:10px;overflow:hidden;">
@@ -44,6 +65,7 @@
               <?php endif; ?>
             </div>
             <div style="display:flex;align-items:center;">
+              <!-- Link download mengarah ke controller, bukan URL file langsung -->
               <a href="<?= base_url('download/' . $song->id) ?>" class="dl-btn" style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:999px;border:1px solid var(--color-rule);background:transparent;color:var(--color-ink-2);font-size:12px;font-weight:500;text-decoration:none;transition:all 0.2s;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Download
@@ -54,7 +76,10 @@
         <?php endforeach; ?>
       </div>
 
-      <!-- Pagination -->
+      <!-- ─── Pagination ───
+           Mempertahankan query pencarian antar halaman via URL param.
+           Link Prev/Next hanya muncul ketika relevan.
+      ─── -->
       <?php if ($total_pages > 1): ?>
       <nav style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:32px;">
         <?php if ($current_page > 1): ?>

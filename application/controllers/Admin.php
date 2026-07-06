@@ -1,6 +1,13 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Admin — panel manajemen untuk administrator.
+ *
+ * Mencakup CRUD lagu (tambah/edit/hapus), manajemen user
+ * (aktivasi/non-aktivasi), dan dashboard statistik.
+ * Semua method dilindungi oleh _require_admin().
+ */
 class Admin extends CI_Controller {
 
     public function __construct()
@@ -11,6 +18,10 @@ class Admin extends CI_Controller {
         $this->load->library(['form_validation', 'upload']);
     }
 
+    /**
+     * Periksa apakah user saat ini adalah admin.
+     * Redirect ke login jika bukan.
+     */
     private function _require_admin()
     {
         $role = $this->session->userdata('role');
@@ -22,7 +33,8 @@ class Admin extends CI_Controller {
     }
 
     /**
-     * Admin dashboard — user list + stats.
+     * Dashboard admin — menampilkan daftar user, statistik,
+     * dan informasi session aktif.
      */
     public function index()
     {
@@ -41,7 +53,10 @@ class Admin extends CI_Controller {
     }
 
     /**
-     * Admin — Add song page.
+     * Halaman tambah lagu baru.
+     *
+     * Mendukung unggah file audio dan cover, serta pembuatan
+     * genre baru secara inline. File audio wajib diisi.
      */
     public function add_song()
     {
@@ -57,7 +72,7 @@ class Admin extends CI_Controller {
             $this->form_validation->set_rules('new_genre', 'New Genre', 'trim|max_length[50]|is_unique[genres.name]');
 
             if ($this->form_validation->run()) {
-                // Handle new genre
+                // Jika ada genre baru yang diisi, buat dulu
                 $genreId = (int) $this->input->post('genre_id') ?: NULL;
                 $newGenre = $this->input->post('new_genre', TRUE);
                 if (!empty($newGenre)) {
@@ -75,18 +90,19 @@ class Admin extends CI_Controller {
                     'file_path'        => '',
                 ];
 
-                // Upload audio
+                // Proses upload file audio
                 if (!empty($_FILES['audio_file']['name'])) {
                     $audioPath = $this->_upload_file('audio_file', 'protected_uploads/audio/');
                     if ($audioPath) $insert['file_path'] = $audioPath;
                 }
 
-                // Upload cover
+                // Proses upload cover
                 if (!empty($_FILES['cover_file']['name'])) {
                     $coverPath = $this->_upload_file('cover_file', 'protected_uploads/covers/');
                     if ($coverPath) $insert['cover_path'] = $coverPath;
                 }
 
+                // File audio wajib ada
                 if (!empty($insert['file_path'])) {
                     $this->db->insert('songs', $insert);
                     $this->session->set_flashdata('success', 'Song added successfully!');
@@ -103,7 +119,9 @@ class Admin extends CI_Controller {
     }
 
     /**
-     * Admin — manage songs list.
+     * Halaman daftar lagu (untuk dikelola admin).
+     *
+     * Menampilkan semua lagu termasuk yang tidak aktif.
      */
     public function songs()
     {
@@ -120,18 +138,23 @@ class Admin extends CI_Controller {
     }
 
     /**
-     * Admin — delete song.
+     * Hapus lagu secara permanen (hard delete).
+     *
+     * Juga menghapus file audio lokal jika ada (bukan URL remote).
+     * Data terkait (lyrics, favorites, dll) terhapus via kaskade FK.
+     *
+     * @param int $id
      */
     public function delete_song($id = 0)
     {
         $this->_require_admin();
-        $song = $this->Song_model->get_by_id((int) $id, false); // include inactive too
+        $song = $this->Song_model->get_by_id((int) $id, false); // include inactive juga
         if (!$song) {
             show_404();
             return;
         }
 
-        // Delete local audio file if it exists
+        // Hapus file audio lokal jika ada
         $filePath = $song->file_path;
         if (!empty($filePath) && stripos($filePath, 'http') !== 0) {
             $fullPath = FCPATH . $filePath;
@@ -140,14 +163,16 @@ class Admin extends CI_Controller {
             }
         }
 
-        // Hard delete — cascades to lyrics, favorites, listen_history, playlist_songs
+        // Hard delete — kaskade ke lyrics, favorites, listen_history, playlist_songs
         $this->db->where('id', (int) $id)->delete('songs');
         $this->session->set_flashdata('success', 'Song deleted permanently!');
         redirect('admin/songs');
     }
 
     /**
-     * Admin — toggle user active status.
+     * Aktifkan/non-aktifkan user (toggle).
+     *
+     * @param int $id
      */
     public function toggle_user($id = 0)
     {
@@ -161,7 +186,9 @@ class Admin extends CI_Controller {
     }
 
     /**
-     * Admin — edit song page.
+     * Halaman edit lagu — mengubah metadata dan/atau file.
+     *
+     * @param int $id
      */
     public function edit_song($id = 0)
     {
@@ -193,10 +220,12 @@ class Admin extends CI_Controller {
                     'artist_bio'       => $this->input->post('artist_bio', TRUE),
                 ];
 
+                // Upload file audio baru jika diganti
                 if (!empty($_FILES['audio_file']['name'])) {
                     $audioPath = $this->_upload_file('audio_file', 'protected_uploads/audio/');
                     if ($audioPath) $update['file_path'] = $audioPath;
                 }
+                // Upload cover baru jika diganti
                 if (!empty($_FILES['cover_file']['name'])) {
                     $coverPath = $this->_upload_file('cover_file', 'protected_uploads/covers/');
                     if ($coverPath) $update['cover_path'] = $coverPath;
@@ -213,8 +242,18 @@ class Admin extends CI_Controller {
         $this->load->view('templates/layout', $data);
     }
 
-    // ── Helpers ──
+    // ── Helper ──
 
+    /**
+     * Upload file ke direktori yang ditentukan.
+     *
+     * Membuat direktori jika belum ada, lalu mengembalikan
+     * path relatif dari file yang berhasil diupload.
+     *
+     * @param string $field Nama field di form
+     * @param string $dir   Direktori tujuan (relatif terhadap FCPATH)
+     * @return string|null  Path relatif file, atau null jika gagal
+     */
     private function _upload_file($field, $dir)
     {
         $fullPath = FCPATH . $dir;

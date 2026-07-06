@@ -1,8 +1,22 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Admin_Login — halaman diagnostik dan login admin terpisah.
+ *
+ * Digunakan saat setup awal untuk memeriksa koneksi database,
+ * keberadaan tabel users, dan validasi password admin default.
+ * Setelah semua berfungsi, admin bisa login langsung dari sini.
+ */
 class Admin_login extends CI_Controller {
 
+    /**
+     * Halaman login admin dengan diagnostik database.
+     *
+     * Menampilkan status koneksi DB, keberadaan tabel users,
+     * dan status user admin. Juga menerima POST untuk login
+     * dan redirect ke dashboard admin jika role = admin.
+     */
     public function index()
     {
         // Cek koneksi database
@@ -31,12 +45,12 @@ class Admin_login extends CI_Controller {
             }
         }
 
-        // Cek admin user
+        // Cek keberadaan user admin
         if ($dbOk) {
             $admin = $this->db->where('username', 'admin')->get('users')->row();
             if ($admin) {
                 $msg .= 'Admin user exists (role: ' . $admin->role . '). ';
-                // Test password
+                // Test password default untuk verifikasi seed berhasil
                 if (password_verify('admin123', $admin->password_hash)) {
                     $msg .= 'Password "admin123" is CORRECT.';
                     $msgType = 'success';
@@ -50,7 +64,7 @@ class Admin_login extends CI_Controller {
             }
         }
 
-        // Handle login POST
+        // Handle form login
         if ($this->input->method() === 'post') {
             $identity = $this->input->post('identity', true);
             $password = $this->input->post('password');

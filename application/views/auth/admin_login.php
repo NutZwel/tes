@@ -1,3 +1,12 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: auth/admin_login.php
+     Halaman login dan diagnostik admin.
+
+     Menampilkan status koneksi database, keberadaan tabel users,
+     informasi user admin, dan form login. Ini adalah halaman
+     standalone (tidak menggunakan templates/layout) karena
+     diakses sebelum database/user mungkin tersedia.
+     ──────────────────────────────────────────────── -->
 <!DOCTYPE html>
 <html lang="en">
 <head>

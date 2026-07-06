@@ -1,6 +1,12 @@
 <!-- ═══════════════════════════════
-     ── Profile Header (Spotify-style) ──
+     VIEW: user/profile.php
+     Halaman profil user dengan tab: Edit Profile, Security,
+     Preferences, dan Account. Menggunakan JavaScript
+     tab-switching (switchTab) dan AJAX untuk menyimpan
+     preferensi tema/warna secara instan.
      ═══════════════════════════════ -->
+
+<!-- ═══ Profile Header (Spotify-style) ═══ -->
 <section style="background:linear-gradient(180deg, var(--color-paper-3) 0%, var(--color-paper) 100%);padding-block:var(--space-2xl) var(--space-lg);">
   <div class="container">
     <div class="row align-items-end g-4">
@@ -8,6 +14,7 @@
         <?php if (!empty($user->avatar_path) && file_exists(FCPATH . $user->avatar_path)): ?>
           <img src="<?= base_url($user->avatar_path) ?>" alt="" style="width:180px;height:180px;border-radius:50%;object-fit:cover;box-shadow:0 8px 30px rgba(0,0,0,.4);" width="180" height="180">
         <?php else: ?>
+          <!-- Avatar fallback: gradient + inisial -->
           <div style="width:180px;height:180px;border-radius:50%;background:linear-gradient(135deg,var(--color-paper-3),var(--color-accent));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 30px rgba(0,0,0,.4);">
             <span style="font-family:var(--font-display);font-size:4rem;font-weight:300;color:var(--color-ink);"><?= mb_strtoupper(mb_substr($user->display_name ?: $user->username, 0, 1)) ?></span>
           </div>
@@ -30,14 +37,12 @@
   </div>
 </section>
 
-<!-- ═══════════════════════════════
-     ── Profile Tabs + Content ──
-     ═══════════════════════════════ -->
+<!-- ═══ Tab Panel Konten Profil ═══ -->
 <section style="padding-block:var(--space-lg) var(--space-3xl);">
   <div class="container">
     <div class="row g-5">
 
-      <!-- Sidebar Tabs -->
+      <!-- Sidebar Tab -->
       <div class="col-12 col-md-3">
         <div style="display:flex;flex-direction:column;gap:2px;position:sticky;top:80px;">
           <button class="profile-tabs__btn profile-tabs__btn--active" data-tab="edit-profile" type="button" onclick="switchTab('edit-profile')" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:6px;border:none;background:transparent;color:var(--color-muted);font-size:var(--text-sm);font-weight:500;cursor:pointer;text-align:left;transition:all .15s;">
@@ -59,7 +64,7 @@
         </div>
       </div>
 
-      <!-- Tab Panels -->
+      <!-- Panel Tab -->
       <div class="col-12 col-md-9">
 
         <!-- ══ Edit Profile ══ -->
@@ -125,7 +130,7 @@
           <?= form_close() ?>
         </div>
 
-        <!-- ══ Security ══ -->
+        <!-- ══ Security (Ganti Password) ══ -->
         <div class="profile-panel" id="security">
           <h2 style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:600;color:var(--color-ink);margin:0 0 4px;">Security</h2>
           <p style="color:var(--color-muted);font-size:var(--text-sm);margin:0 0 24px;">Change your password.</p>
@@ -166,7 +171,7 @@
           <p style="color:var(--color-muted);font-size:var(--text-sm);margin:0 0 24px;">Customize your experience.</p>
 
           <?= form_open_multipart('user/update_preferences') ?>
-            <!-- Toggles -->
+            <!-- Toggles preferensi -->
             <div style="background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:8px;padding:4px 20px;margin-bottom:16px;">
               <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;">
                 <div>
@@ -203,7 +208,7 @@
               </div>
             </div>
 
-            <!-- Theme Presets (Spicetify-style) -->
+            <!-- Theme Presets -->
             <div style="background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:8px;padding:24px;margin-bottom:16px;">
               <div style="font-size:var(--text-sm);font-weight:500;color:var(--color-ink-2);margin-bottom:4px;">Theme</div>
               <div style="font-size:var(--text-xs);color:var(--color-muted);margin-bottom:12px;">Choose a color scheme for the entire interface.</div>
@@ -241,7 +246,7 @@
               </div>
             </div>
 
-            <!-- Accent Color (dengan visual feedback) -->
+            <!-- Pilihan Warna Aksen -->
             <div style="background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:8px;padding:24px;margin-bottom:16px;">
               <div style="font-size:var(--text-sm);font-weight:500;color:var(--color-ink-2);margin-bottom:12px;">Accent Color</div>
               <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -263,7 +268,7 @@
               </div>
             </div>
 
-            <!-- Background CSS from ColorHunt / Custom -->
+            <!-- Background CSS Kustom (ColorHunt / CSS Gradient) -->
             <div style="background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:8px;padding:24px;margin-bottom:16px;">
               <div style="font-size:var(--text-sm);font-weight:500;color:var(--color-ink-2);margin-bottom:4px;">Background Effect</div>
               <div style="font-size:var(--text-xs);color:var(--color-muted);margin-bottom:12px;">Paste CSS from <a href="https://colorhunt.co" target="_blank" style="color:var(--color-accent);">ColorHunt</a>, <a href="https://cssgradient.io" target="_blank" style="color:var(--color-accent);">CSS Gradient</a>, or any background animation code.</div>
@@ -329,5 +334,3 @@
     </div>
   </div>
 </section>
-
-<!-- initProfileTabs di pjax.js -->

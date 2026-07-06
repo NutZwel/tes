@@ -1,6 +1,12 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Song — halaman detail lagu.
+ *
+ * Menampilkan informasi lagu, lirik (jika ada), dan lagu
+ * serupa dari genre yang sama.
+ */
 class Song extends CI_Controller {
 
     public function __construct()
@@ -11,7 +17,12 @@ class Song extends CI_Controller {
     }
 
     /**
-     * Show song detail page.
+     * Tampilkan halaman detail lagu.
+     *
+     * Menampilkan metadata lagu, lirik dari database,
+     * serta daftar lagu serupa (genre sama, maks 6).
+     *
+     * @param int $songId
      */
     public function index($songId = 0)
     {
@@ -27,11 +38,11 @@ class Song extends CI_Controller {
             return;
         }
 
-        // Get lyrics if any
+        // Ambil lirik dari database lokal
         $this->db->where('song_id', $songId);
         $lyrics = $this->db->get('lyrics')->row();
 
-        // Get similar songs (same genre)
+        // Cari lagu serupa dari genre yang sama
         $similar = [];
         if ($song->genre_id) {
             $this->db->select('id, title, artist, duration_seconds, cover_path');

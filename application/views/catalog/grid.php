@@ -1,3 +1,15 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: catalog/grid.php
+     Menampilkan katalog lagu dalam bentuk grid card.
+     Setiap card menampilkan cover (atau inisial fallback),
+     judul, artis, genre badge, durasi, dan dropdown menu
+     untuk queue/playlist/favorite/download.
+
+     Jika ada query pencarian (?q=), juga menampilkan
+     hasil playlist publik yang cocok di atas grid.
+     Mendukung empty state dan paginasi Previous/Next.
+     ──────────────────────────────────────────────── -->
+
 <style>
   .song-card .play-overlay { opacity: 0; transition: opacity 0.2s ease; background: rgba(0,0,0,0.15) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
   .song-card:hover .play-overlay { opacity: 1 !important; }
@@ -9,7 +21,7 @@
     </header>
 
     <?php if (!empty($search_query) && !empty($public_playlists)): ?>
-    <!-- Public Playlists Results -->
+    <!-- Hasil Playlist Publik (hanya muncul saat pencarian) -->
     <div class="mb-5">
       <h2 class="h5 fw-light mb-3" style="font-family:var(--font-display);color:var(--color-ink);">Public Playlists</h2>
       <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-5 g-3">
@@ -35,7 +47,7 @@
     <?php endif; ?>
 
     <?php if (empty($songs)): ?>
-
+      <!-- Empty state — berbeda antara "tidak ada hasil" vs "katalog kosong" -->
       <div class="text-center py-5">
         <div class="mb-3 text-body-secondary" aria-hidden="true">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
@@ -45,9 +57,8 @@
         <p class="text-body-secondary mb-3"><?= !empty($search_query) ? 'No tracks found for "' . html_escape($search_query) . '"' : 'No tracks yet — check back soon.' ?></p>
         <a href="<?= base_url('catalog') ?>" class="btn btn-outline-secondary"><?= !empty($search_query) ? 'Browse All' : 'Browse Home' ?></a>
       </div>
-
     <?php else: ?>
-
+      <!-- Grid lagu — setiap card memiliki data-song-id untuk integrasi player -->
       <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
         <?php foreach ($songs as $song): ?>
         <div class="col">
@@ -61,10 +72,12 @@
                      loading="lazy"
                      width="280" height="280">
               <?php else: ?>
+                <!-- Fallback: huruf pertama judul sebagai placeholder -->
                 <div class="d-flex align-items-center justify-content-center w-100 h-100">
                   <span class="display-5 fw-bold text-body-secondary"><?= mb_strtoupper(mb_substr($song->title, 0, 1)) ?></span>
                 </div>
               <?php endif; ?>
+              <!-- Overlay play yang muncul saat hover -->
               <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center text-white play-overlay" style="cursor: pointer;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <polygon points="8,5 19,12 8,19"/>
@@ -82,6 +95,7 @@
                   </a>
                   <p class="card-text small text-body-secondary text-truncate mb-0"><?= html_escape($song->artist) ?></p>
                 </div>
+                <!-- Dropdown aksi (Add to Queue, Playlist, Favorite, Download) -->
                 <div class="dropdown flex-shrink-0">
                   <button class="btn btn-sm text-body-secondary border-0" aria-label="More options" type="button" data-song-id="<?= $song->id ?>" data-bs-toggle="dropdown" aria-expanded="false">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
@@ -116,6 +130,7 @@
         <?php endforeach; ?>
       </div>
 
+      <!-- Navigasi halaman — pertahankan query pencarian di URL -->
       <?php if ($total_pages > 1): ?>
       <nav aria-label="Catalog pages" class="mt-4 d-flex align-items-center justify-content-between">
         <?php if ($current_page > 1): ?>

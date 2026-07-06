@@ -1,3 +1,11 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: admin/add_song.php
+     Form tambah lagu baru ke katalog.
+     Memuat input untuk judul, artis, genre (dropdown + new genre),
+     durasi, deskripsi, artist bio, upload file audio (wajib),
+     dan upload cover (opsional). Menggunakan form_open_multipart
+     untuk menangani file upload.
+     ──────────────────────────────────────────────── -->
 <section class="py-5">
   <div class="container">
 
@@ -45,7 +53,7 @@
 
           <div class="row g-4">
 
-            <!-- Song Title -->
+            <!-- Judul Lagu -->
             <div class="col-12">
               <label for="title" class="form-label" style="color:var(--color-ink);">Song Title <span class="text-danger">*</span></label>
               <input type="text" name="title" id="title"
@@ -55,7 +63,7 @@
               <?= form_error('title', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Artist -->
+            <!-- Artis -->
             <div class="col-12">
               <label for="artist" class="form-label" style="color:var(--color-ink);">Artist <span class="text-danger">*</span></label>
               <input type="text" name="artist" id="artist"
@@ -78,11 +86,12 @@
                 </select>
                 <button type="button" class="btn btn-outline-light" style="white-space:nowrap;flex-shrink:0;" onclick="document.getElementById('genre_id').disabled=true;document.getElementById('genre_id').style.opacity='0.4';document.getElementById('new_genre_input').style.display='';this.style.display='none';">+ New</button>
               </div>
+              <!-- Input genre baru — muncul saat tombol "+ New" diklik -->
               <input type="text" name="new_genre" id="new_genre_input" placeholder="Enter new genre name" style="display:none;width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--color-rule);background:var(--color-paper);color:var(--color-ink);font-size:var(--text-sm);margin-top:6px;outline:none;">
               <?= form_error('genre_id', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Duration -->
+            <!-- Durasi -->
             <div class="col-md-6">
               <label for="duration_seconds" class="form-label" style="color:var(--color-ink);">Duration (seconds)</label>
               <input type="number" name="duration_seconds" id="duration_seconds"
@@ -92,7 +101,7 @@
               <?= form_error('duration_seconds', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Description -->
+            <!-- Deskripsi -->
             <div class="col-12">
               <label for="description" class="form-label" style="color:var(--color-ink);">Song Description</label>
               <textarea name="description" id="description"
@@ -101,7 +110,7 @@
               <?= form_error('description', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Artist Bio -->
+            <!-- Bio Artis -->
             <div class="col-12">
               <label for="artist_bio" class="form-label" style="color:var(--color-ink);">Artist Bio</label>
               <textarea name="artist_bio" id="artist_bio"
@@ -110,7 +119,7 @@
               <?= form_error('artist_bio', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Audio Upload -->
+            <!-- Upload Audio -->
             <div class="col-12">
               <label class="form-label" style="color:var(--color-ink);">Audio File <span class="text-danger">*</span></label>
               <label for="audio_file" class="upload-box" style="cursor:pointer;">
@@ -126,7 +135,7 @@
               <?= form_error('audio_file', '<div class="invalid-feedback">', '</div>') ?>
             </div>
 
-            <!-- Cover Upload -->
+            <!-- Upload Cover -->
             <div class="col-12">
               <label class="form-label" style="color:var(--color-ink);">Cover Image</label>
               <label for="cover_file" class="upload-box" style="cursor:pointer;">

@@ -1,6 +1,12 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Auth — menangani registrasi, login, dan logout pengguna.
+ *
+ * Menggunakan CI3 Form Validation untuk validasi input dan
+ * menyimpan data sesi setelah autentikasi berhasil.
+ */
 class Auth extends CI_Controller {
 
     public function __construct()
@@ -9,12 +15,20 @@ class Auth extends CI_Controller {
         $this->load->model('User_model');
     }
 
+    /**
+     * Halaman registrasi — mendaftarkan user baru.
+     *
+     * Memvalidasi username (unik), email (unik), password, dan konfirmasi password.
+     * Setelah sukses, langsung login dan redirect ke halaman utama.
+     */
     public function register()
     {
         $data['title'] = 'Register — Laufey';
         $data['error'] = '';
 
         if ($this->input->method() === 'post') {
+            // Aturan validasi — callback _username_check dan _email_check
+            // untuk memeriksa duplikasi di database
             $this->form_validation->set_rules('username', 'Username', 'required|trim|min_length[3]|max_length[60]|callback__username_check');
             $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email|callback__email_check');
             $this->form_validation->set_rules('password', 'Password', 'required|min_length[6]');
@@ -29,6 +43,7 @@ class Auth extends CI_Controller {
                 ]);
 
                 if ($userId) {
+                    // Langsung login setelah registrasi berhasil
                     $user = $this->User_model->get_by_id($userId);
                     $this->_set_session($user);
                     redirect('/');
@@ -42,6 +57,11 @@ class Auth extends CI_Controller {
         $this->load->view('templates/layout', $data);
     }
 
+    /**
+     * Halaman login — autentikasi dengan username atau email.
+     *
+     * Satu field "identity" menerima username atau email.
+     */
     public function login()
     {
         $data['title'] = 'Sign In — Laufey';
@@ -70,6 +90,9 @@ class Auth extends CI_Controller {
         $this->load->view('templates/layout', $data);
     }
 
+    /**
+     * Logout — hapus semua data sesi dan regenerasi session ID.
+     */
     public function logout()
     {
         $this->session->unset_userdata('user_id');
@@ -79,8 +102,14 @@ class Auth extends CI_Controller {
         redirect('/');
     }
 
-    // ── Validation callbacks ──
+    // ── Callback validasi ──
 
+    /**
+     * Callback form validation: pastikan username belum terdaftar.
+     *
+     * @param string $username
+     * @return bool
+     */
     public function _username_check($username)
     {
         if ($this->User_model->username_exists($username)) {
@@ -90,6 +119,12 @@ class Auth extends CI_Controller {
         return true;
     }
 
+    /**
+     * Callback form validation: pastikan email belum terdaftar.
+     *
+     * @param string $email
+     * @return bool
+     */
     public function _email_check($email)
     {
         if ($this->User_model->email_exists($email)) {
@@ -99,8 +134,13 @@ class Auth extends CI_Controller {
         return true;
     }
 
-    // ── Session helpers ──
+    // ── Helper sesi ──
 
+    /**
+     * Set data sesi setelah login berhasil.
+     *
+     * @param object $user  Objek user dari database
+     */
     private function _set_session($user)
     {
         $this->session->set_userdata([

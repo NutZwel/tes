@@ -1,6 +1,25 @@
+<!-- ────────────────────────────────────────────────
+     VIEW: templates/nav.php
+     Navigasi utama (navbar) dan sidebar offcanvas.
+
+     Untuk user login:
+       - Tombol hamburger kiri membuka offcanvas sidebar
+         berisi Home, Catalog, My Playlist, Profile,
+         Download, Admin Panel (admin only), dan Sign Out.
+       - Search form di tengah yang mengarah ke catalog.
+       - Logo Laufey di kanan.
+
+     Untuk guest:
+       - Link inline: Dashboard, Catalog, Search.
+       - Tombol Login / Sign Up di kanan.
+
+     Nav section aktif ditentukan dengan mencocokkan
+     segment URL saat ini dengan pola route yang dikenal.
+     ──────────────────────────────────────────────── -->
+
 <?php
 $activeSegment = ltrim((string) ($this->uri->segment(1) ?: 'dashboard'), '/');
-// Map URLs to nav sections — covers direct routes AND PJAX initial state
+// Mapping URL ke section navigasi — mencakup direct route DAN PJAX initial state
 $navSection = match (true) {
   $activeSegment === 'catalog' || $activeSegment === 'catalog/index' => 'catalog',
   $activeSegment === 'playlist' || $activeSegment === 'playlists' => 'playlist',
@@ -17,13 +36,14 @@ $userRole = $isLoggedIn ? $this->session->userdata('role') : '';
 ?>
 
 <?php if ($isLoggedIn): ?>
-<!-- ═══ Sidebar ═══ -->
+<!-- ═══ Sidebar (offcanvas) ═══ -->
 <div class="offcanvas offcanvas-start bg-dark text-light" tabindex="-1" id="sidebar" aria-label="User menu">
   <div class="offcanvas-header border-bottom border-secondary">
     <a href="<?= base_url('user') ?>" class="d-flex align-items-center text-decoration-none text-light gap-2">
       <?php if ($avatarPath && file_exists(FCPATH . $avatarPath)): ?>
         <img src="<?= base_url($avatarPath) ?>" alt="" class="rounded-2" width="40" height="40" style="object-fit:cover;">
       <?php else: ?>
+        <!-- Fallback avatar: huruf pertama dari display name atau username -->
         <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-secondary text-primary" style="width:40px;height:40px;font-weight:600;"><?= mb_strtoupper(mb_substr($displayName ?: $username, 0, 1)) ?></span>
       <?php endif; ?>
       <div>
@@ -35,6 +55,8 @@ $userRole = $isLoggedIn ? $this->session->userdata('role') : '';
   </div>
   <div class="offcanvas-body p-3">
     <div class="d-flex flex-column gap-1">
+      <!-- Setiap nav-link memiliki atribut data-pjax-nav untuk PJAX interception;
+           class nav__btn--active menandai section yang sedang aktif -->
       <a href="<?= base_url() ?>" class="nav__btn nav-pjax <?= $navSection === 'dashboard' ? 'nav__btn--active' : '' ?>" data-pjax-nav>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
       </a>
@@ -51,6 +73,7 @@ $userRole = $isLoggedIn ? $this->session->userdata('role') : '';
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download
       </a>
       <?php if ($userRole === 'admin'): ?>
+      <!-- Link khusus admin ke panel manajemen -->
       <a href="<?= base_url('admin') ?>" class="nav__btn nav-pjax <?= $navSection === 'admin' ? 'nav__btn--active' : '' ?>" data-pjax-nav>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Admin Panel
       </a>
@@ -62,11 +85,12 @@ $userRole = $isLoggedIn ? $this->session->userdata('role') : '';
 </div>
 <?php endif; ?>
 
-<!-- ═══ Main Navbar ═══ -->
+<!-- ═══ Navbar Utama ═══ -->
 <nav class="navbar navbar-expand navbar-dark bg-dark border-bottom border-secondary sticky-top py-2">
   <div class="container">
     <?php if ($isLoggedIn): ?>
     <div class="d-flex align-items-center gap-2 flex-grow-1">
+      <!-- Tombol hamburger untuk sidebar -->
       <button class="btn btn-sm btn-outline-secondary border-0 me-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
@@ -85,6 +109,7 @@ $userRole = $isLoggedIn ? $this->session->userdata('role') : '';
       </a>
     </div>
     <?php else: ?>
+    <!-- Navbar guest: logo di kiri, nav links dan tombol auth di kanan -->
     <a href="<?= base_url() ?>" class="navbar-brand me-3 p-0">
       <img src="<?= base_url('public/images/logo.png') ?>" alt="Laufey" height="32">
     </a>
